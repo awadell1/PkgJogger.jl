@@ -4,7 +4,7 @@
     @jog PkgName
 
 Creates a module named `JogPkgName` of benchmarks for `PkgName` pulled from
-`PKG_DIR/benchmark/`
+`PKG_DIR/benchmark/bench_*.jl`
 
 Methods:
  - `suite()`        Return a `BenchmarkGroup` of the benchmarks for `PkgName`
