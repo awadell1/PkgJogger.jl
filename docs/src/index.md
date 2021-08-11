@@ -4,11 +4,50 @@ CurrentModule = PkgJogger
 
 # PkgJogger
 
-Documentation for [PkgJogger](https://github.com/awadell1/PkgJogger.jl).
+*A Benchmarking Framework for Julia*
 
-```@index
+PkgJogger makes benchmarking easy by providing a framework for running [BenchmarkTool.jl](https://github.com/JuliaCI/BenchmarkTools.jl) benchmarks, while handling all the boilerplate setup.
+
+## Just write benchmarks
+
+Create a `benchmark/bench_*.jl` file, define a `suite` and go!
+
+```julia
+using Benchmark
+using AwesomePkg
+suite = BenchmarkGroup()
+suite["fast"] = @benchmarkable fast_code()
 ```
 
-```@autodocs
-Modules = [PkgJogger]
+PkgJogger will wrap each `benchmark/bench_*.jl` in it's own module and bundle them into `JogAwesomePkg`
+
+```julia
+using AwesomePkg
+using PkgJogger
+
+# Creates the JogAwesomePkg module
+@jog AwesomePkg
+
+# Warmup, tune and run all of AwesomePkg's benchmarks
+JogAwesomePkg.benchmark()
 ```
+
+## Benchmark, Revise and Benchmark Again!
+
+PkgJogger uses [Revise.jl](https://github.com/timholy/Revise.jl) to track
+changes to your `benchmark/bench_*.jl` files and reload your suite as you edit.
+No more waiting for your benchmarks to precompile!
+
+Tracked Changes:
+
+- Changing your benchmarked function
+- Changing benchmarking parameters (ie. `seconds` or `samples`)
+- Adding new benchmarks
+
+Current Limitations:
+
+- New benchmark files are not tracked
+- Deleted benchmarks will stick around
+- Renamed benchmarks will create a new benchmark, and retain the old name
+
+To get around the above, run `@jog PkgName` to get a updated jogger.
