@@ -19,3 +19,12 @@ benchmark_dir = PkgJogger.benchmark_dir(PkgJogger)
     r = JogPkgJogger.run()
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
 end
+
+@testset "Jogger Methods" begin
+    @jog PkgJogger
+    @test @isdefined JogPkgJogger
+
+    @testset "JogPkgJogger.$f" for (m, f) in PkgJogger.DISPATCH_METHODS
+        @test isdefined(JogPkgJogger, f)
+    end
+end
