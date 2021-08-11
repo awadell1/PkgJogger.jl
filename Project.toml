@@ -3,7 +3,15 @@ uuid = "10150987-6cc1-4b76-abee-b1c1cbd91c01"
 authors = ["Alexius Wadell <awadell@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
 [compat]
+Revise = "3"
+MacroTools = "0.5"
+BenchmarkTools = "1"
 julia = "1.6"
 
 [extras]
