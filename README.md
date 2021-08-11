@@ -15,5 +15,5 @@ PkgJogger is a benchmarking framework for Julia with the following features:
 
 - Revise, benchmark, and revise again
 
-    PkgJogger uses [Revise.jl] to track changes to benchmarking files and updates
+    PkgJogger uses [Revise.jl](https://github.com/timholy/Revise.jl) to track changes to benchmarking files and updates
     the suite as you edit. No more waiting your benchmarks to precompile!
