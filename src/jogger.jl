@@ -35,7 +35,11 @@ macro jog(pkg)
     end
 
     # Flatten out modules into a Vector{Expr}
-    suite_exp = getfield(MacroTools.flatten(quote $(suite_modules...) end), :args)
+    if !isempty(suite_modules)
+        suite_exp = getfield(MacroTools.flatten(quote $(suite_modules...) end), :args)
+    else
+        suite_exp = Expr[]
+    end
 
     # Generate Module for Jogging pkg
     quote
