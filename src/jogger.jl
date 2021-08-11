@@ -15,7 +15,7 @@ macro jog(pkg)
     modname = Symbol(:Jog, pkg)
 
     # Locate benchmark folder
-    bench_dir = @eval benchmark_dir($pkg)
+    bench_dir = benchmark_dir(pkg)
 
     # Generate modules
     suite_modules = Expr[]
@@ -35,7 +35,11 @@ macro jog(pkg)
     end
 
     # Flatten out modules into a Vector{Expr}
-    suite_exp = getfield(MacroTools.flatten(quote $(suite_modules...) end), :args)
+    if !isempty(suite_modules)
+        suite_exp = getfield(MacroTools.flatten(quote $(suite_modules...) end), :args)
+    else
+        suite_exp = Expr[]
+    end
 
     # Generate Module for Jogging pkg
     quote
@@ -72,8 +76,10 @@ end
 
 Expected location of benchmarks for `pkg`
 """
-function benchmark_dir(pkg::Module)
-    pkg_dir = joinpath(dirname(pathof(pkg)), "..")
+benchmark_dir(pkg::Union{String, Module}) = benchmark_dir(Base.PkgId(pkg))
+benchmark_dir(pkg::Symbol) = benchmark_dir(string(pkg))
+function benchmark_dir(pkg_id::Base.PkgId)
+    pkg_dir = joinpath(dirname(Base.locate_package(pkg_id)), "..")
     joinpath(pkg_dir, "benchmark") |> abspath
 end
 
