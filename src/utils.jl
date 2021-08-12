@@ -48,18 +48,21 @@ function sandbox(f, pkg, load_path)
     current_load_path = Base.LOAD_PATH
 
     # Build temporary environment
+    # Add the project being benchmarked, then JOGGER_PKGS restricted to existing
+    # manifest. Ie. The benchmarked projects drives compat not PkgJogger
     Pkg.activate(;temp=true)
     Pkg.add(pkg; io=IOBuffer())
     Pkg.add(JOGGER_PKGS; preserve=PRESERVE_ALL, io=IOBuffer())
     Pkg.instantiate(; io=IOBuffer())
 
     # Update LOAD_PATH
+    # Only load code from: Temp Environment or benchmark/Project.toml
     empty!(Base.LOAD_PATH)
-    append!(Base.LOAD_PATH, vcat(["@"], load_path, ["@stdlib"]))
+    append!(Base.LOAD_PATH, vcat(["@"], load_path))
 
     # Report current status
     Pkg.status(;mode=PKGMODE_MANIFEST)
-    @info "LOAD_PATH: $(Base.LOAD_PATH)"
+    @debug "LOAD_PATH: $(Base.LOAD_PATH)"
 
     # Run function
     f()
