@@ -18,6 +18,15 @@ benchmark_dir = PkgJogger.benchmark_dir(PkgJogger)
     # Running
     r = JogPkgJogger.run()
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
+
+    # Saving and Loading
+    file = PkgJogger.save_benchmarks(r)
+    @test isfile(file)
+    r2 = PkgJogger.load_benchmarks(file)
+    @test haskey(r2, "julia")
+    @test haskey(r2, "manifest")
+    @test haskey(r2, "benchmarks")
+    @test r == r2
 end
 
 @testset "Jogger Methods" begin

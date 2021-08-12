@@ -36,6 +36,8 @@ function ci()
             using $pkgname
             jogger = @jog $pkgname
             result = jogger.benchmark()
+            filename = PkgJogger.save_benchmarks(result)
+            @info "Saved benchmarks to $filename"
         end
     end
 end
@@ -75,3 +77,65 @@ function instantiate(project_file)
     Pkg.instantiate(; io=IOBuffer())
     Pkg.activate(cur_project; io=IOBuffer())
 end
+
+"""
+    save_benchmarks(results::BenchmarkGroup)
+
+Save benchmarking results to `PKG_DIR/benchmarks/trail/UUID.jld2` for later analysis.
+
+File Contents
+    - Julia Version, Commit and Commit date
+    - Manifest for the current project
+    - Benchmarking Results
+
+File Format: Results are saved using JLD2 and
+"""
+function save_benchmarks(results::BenchmarkTools.BenchmarkGroup)
+    # Generate output file
+    filename = joinpath(
+        benchmark_dir(pwd()),
+        "trial",
+        "$(UUIDs.uuid4()).json.gz"
+    )
+    mkpath(dirname(filename))
+
+    # Collect system information to save
+    out = Dict(
+        "julia" => julia_info(),
+        "manifest" => manifest_info(),
+        "benchmarks" => results,
+    )
+
+    # Write benchmark to disk
+    open(GzipCompressorStream, filename, "w") do io
+        JSON.print(io, out)
+    end
+    filename
+end
+
+function load_benchmarks(filename)
+    # Decompress
+    out = open(JSON.parse, GzipDecompressorStream, filename)
+
+    # Recover BenchmarkTools Types
+    if haskey(out, "benchmarks")
+        out["benchmarks"] = BenchmarkTools.recover(out["benchmarks"])
+    else
+        error("Missing 'benchmarks' field in $filename")
+    end
+    out
+end
+
+function julia_info()
+    Dict(
+        :version => Base.VERSION,
+        :commit => Base.GIT_VERSION_INFO.commit,
+        :date => Base.GIT_VERSION_INFO.date_string,
+    )
+end
+
+function manifest_info()
+    ctx = Pkg.Types.Context()
+    Pkg.Operations.load_manifest_deps(ctx)
+end
+

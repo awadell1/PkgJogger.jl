@@ -2,7 +2,10 @@ module PkgJogger
 
 using MacroTools
 using BenchmarkTools
+using CodecZlib
+using JSON
 using Pkg
+using UUIDs
 
 export @jog
 
