@@ -11,7 +11,7 @@ export @jog
 
 # The following packages are used by JogPkgName
 const JOGGER_PKGS = [
-    PackageSpec(name="PkgJogger", uuid="10150987-6cc1-4b76-abee-b1c1cbd91c01"),
+    PackageSpec(name="PkgJogger", uuid="10150987-6cc1-4b76-abee-b1c1cbd91c01", path=dirname(@__DIR__)),
     PackageSpec(name="BenchmarkTools", uuid="6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"),
     PackageSpec(name="Revise", uuid="295af30f-e4ad-537b-8983-00126c2a3abe"),
 ]

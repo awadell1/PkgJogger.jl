@@ -25,6 +25,10 @@ include("utils.jl")
     r2 = PkgJogger.load_benchmarks(file)
     test_loaded_results(r2)
     @test r == r2["benchmarks"]
+
+    # Clean up file and delete benchmark folder in test
+    rm(file)
+    rm(joinpath(@__DIR__, "benchmark"); force=true, recursive=true)
 end
 
 @testset "Jogger Methods" begin
