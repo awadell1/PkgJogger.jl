@@ -2,7 +2,7 @@ using Test
 using PkgJogger
 import BenchmarkTools
 
-benchmark_dir = PkgJogger.benchmark_dir(PkgJogger)
+include("utils.jl")
 
 @testset "canonical" begin
     @jog PkgJogger
@@ -23,10 +23,8 @@ benchmark_dir = PkgJogger.benchmark_dir(PkgJogger)
     file = PkgJogger.save_benchmarks(r)
     @test isfile(file)
     r2 = PkgJogger.load_benchmarks(file)
-    @test haskey(r2, "julia")
-    @test haskey(r2, "manifest")
-    @test haskey(r2, "benchmarks")
-    @test r == r2
+    test_loaded_results(r2)
+    @test r == r2["benchmarks"]
 end
 
 @testset "Jogger Methods" begin
