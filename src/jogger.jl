@@ -17,6 +17,13 @@ macro jog(pkg)
     # Locate benchmark folder
     bench_dir = benchmark_dir(pkg)
 
+    # Generate Using Statements
+    using_statements = Expr[]
+    for pkg in JOGGER_PKGS
+        pkgname = Symbol(pkg.name)
+        push!(using_statements, :(using $pkgname))
+    end
+
     # Generate modules
     suite_modules = Expr[]
     benchmarks = Symbol[]
@@ -45,9 +52,7 @@ macro jog(pkg)
     quote
         @eval module $modname
             using $pkg
-            using BenchmarkTools
-            using PkgJogger
-            using Revise
+            $(using_statements...)
 
             # Set Revise Mode and put submodules here
             __revise_mode__ = :eval
@@ -76,10 +81,13 @@ end
 
 Expected location of benchmarks for `pkg`
 """
-benchmark_dir(pkg::Union{String, Module}) = benchmark_dir(Base.PkgId(pkg))
-benchmark_dir(pkg::Symbol) = benchmark_dir(string(pkg))
+benchmark_dir(pkg::Module) = benchmark_dir(Base.PkgId(pkg))
+benchmark_dir(pkg::Symbol) = benchmark_dir(Base.PkgId(string(pkg)))
 function benchmark_dir(pkg_id::Base.PkgId)
     pkg_dir = joinpath(dirname(Base.locate_package(pkg_id)), "..")
+    benchmark_dir(pkg_dir)
+end
+function benchmark_dir(pkg_dir::String)
     joinpath(pkg_dir, "benchmark") |> abspath
 end
 
