@@ -138,7 +138,7 @@ function julia_info()
 end
 
 function manifest_info()
-    ctx = Pkg.Types.Context()
-    Pkg.Operations.load_manifest_deps(ctx)
+    manifest = Base.project_file_manifest_path(Base.current_project())
+    Pkg.Types.read_manifest(manifest)
 end
 
