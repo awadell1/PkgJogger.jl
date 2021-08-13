@@ -36,16 +36,13 @@ PkgJogger will create a temporary environment with the following:
 
 1) Instantiate the current package
 2) If found, instantiate `benchmark/Project.toml` and add to the `LOAD_PATH`
-3) Add PkgJogger, BenchmarkTools and Revise, while preserving the resolved manifest
+3) Add PkgJogger while preserving the resolved manifest
 4) Remove `@stdlib` and `@v#.#` from the `LOAD_PATH`
 
 This results in an isolated environment with the following properties:
 
 - PkgJogger does not dictate package resolution; the benchmarked package does
-- Packages not explicitly added by `Project.toml`, `benchmark/Project.toml` or
-  PkgJogger are unavailable
-
-See [`PkgJogger.JOGGER_PKGS`](@ref) for the exact list of packages added by PkgJogger
+- Packages not explicitly added by `Project.toml` or `benchmark/Project.toml`
 
 ## Reference
 
