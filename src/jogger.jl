@@ -42,7 +42,7 @@ macro jog(pkg)
     using_statements = Expr[]
     for pkg in JOGGER_PKGS
         pkgname = Symbol(pkg.name)
-        push!(using_statements, :(using $pkgname))
+        push!(using_statements, :(const $pkgname = Base.loaded_modules[$pkg]))
     end
 
     # Generate modules
@@ -85,7 +85,7 @@ macro jog(pkg)
             Gets the BenchmarkTools suite for $($pkg)
             """
             function suite()
-                suite = BenchmarkGroup()
+                suite = BenchmarkTools.BenchmarkGroup()
                 for (n, m) in zip([$(string.(benchmarks)...)], [$(benchmarks...)])
                     suite[n] = m.suite
                 end

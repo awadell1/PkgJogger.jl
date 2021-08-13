@@ -8,9 +8,6 @@ CurrentModule = PkgJogger
 
 PkgJogger makes benchmarking easy by providing a framework for running [BenchmarkTool.jl](https://github.com/JuliaCI/BenchmarkTools.jl) benchmarks without the boilerplate.
 
-> PkgJogger assumes that Revise and BenchmarkTools are loadable from the current
-> environment
-
 ## Just write benchmarks
 
 Create a `benchmark/bench_*.jl` file, define a `suite` and go!

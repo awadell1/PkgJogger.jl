@@ -56,12 +56,19 @@ function sandbox(f, pkg, load_path)
     current_project = Pkg.project()
     current_load_path = Base.LOAD_PATH
 
+    # Construct PackageSpec for self
+    self = PackageSpec(
+        name = JOGGER_PKGS[1].name,
+        uuid = JOGGER_PKGS[1].uuid,
+        path = dirname(dirname(pathof(@__MODULE__))),
+    )
+
     # Build temporary environment
-    # Add the project being benchmarked, then JOGGER_PKGS restricted to existing
-    # manifest. Ie. The benchmarked projects drives compat not PkgJogger
+    # Add the project being benchmarked, then PkgJogger restricted to existing
+    # manifest. Ie. The benchmarked projects drives manifest resolution, not PkgJogger
     Pkg.activate(;temp=true)
     Pkg.develop(pkg; io=devnull)
-    Pkg.add(JOGGER_PKGS; preserve=PRESERVE_ALL, io=devnull)
+    Pkg.add(self; preserve=PRESERVE_ALL, io=devnull)
     Pkg.instantiate(; io=devnull)
 
     # Update LOAD_PATH
