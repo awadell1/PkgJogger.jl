@@ -2,7 +2,7 @@ using Test
 using PkgJogger
 import BenchmarkTools
 
-benchmark_dir = PkgJogger.benchmark_dir(PkgJogger)
+include("utils.jl")
 
 @testset "canonical" begin
     @jog PkgJogger
@@ -18,6 +18,17 @@ benchmark_dir = PkgJogger.benchmark_dir(PkgJogger)
     # Running
     r = JogPkgJogger.run()
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
+
+    # Saving and Loading
+    file = JogPkgJogger.save_benchmarks(r)
+    @test isfile(file)
+    r2 = PkgJogger.load_benchmarks(file)
+    test_loaded_results(r2)
+    @test r == r2["benchmarks"]
+
+    # Clean up file and delete benchmark folder in test
+    rm(file)
+    rm(joinpath(@__DIR__, "benchmark"); force=true, recursive=true)
 end
 
 @testset "Jogger Methods" begin

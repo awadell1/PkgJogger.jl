@@ -1,6 +1,8 @@
-using PkgJogger
 using Test
+using SafeTestsets
+using PkgJogger
 
 @testset "PkgJogger.jl" begin
-    include("smoke.jl")
+    @safetestset "Smoke Tests" begin include("smoke.jl") end
+    @safetestset "CI Workflow" begin include("ci.jl") end
 end

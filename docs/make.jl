@@ -15,6 +15,9 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Saving Results" => "io.md",
+        "Continuous Benchmarking" => "ci.md",
+        "Reference" => "reference.md",
     ],
 )
 

@@ -12,7 +12,7 @@ const DISPATCH_METHODS = [
 
 Warmup, tune and run a benchmark suite
 """
-function benchmark(s::BenchmarkTools.BenchmarkGroup; kwargs...)
+function benchmark(s::BenchmarkTools.BenchmarkGroup)
     warmup(s)
     tune!(s)
     BenchmarkTools.run(s)
