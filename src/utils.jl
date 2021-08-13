@@ -103,7 +103,8 @@ function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
     mkpath(dirname(filename))
     out = Dict(
         "julia" => julia_info(),
-        "manifest" => manifest_info(),
+        "system" => system_info(),
+        "datetime" =>string(Dates.now()),
         "benchmarks" => results,
     )
 
@@ -118,6 +119,30 @@ end
 function _save_jogger_benchmarks(dir, results::BenchmarkTools.BenchmarkGroup)
     filename = joinpath(dir, "$(UUIDs.uuid4()).json.gz")
     save_benchmarks(filename, results)
+end
+
+function julia_info()
+    Dict(
+        :version => Base.VERSION,
+        :commit => Base.GIT_VERSION_INFO.commit,
+        :date => Base.GIT_VERSION_INFO.date_string,
+    )
+end
+
+function system_info()
+    Dict(
+        "arch" => string(Sys.ARCH),
+        "kernel" => string(Sys.KERNEL),
+        "machine" => Sys.MACHINE,
+        "jit" => Sys.JIT,
+        "word_size" => Sys.WORD_SIZE,
+        "cpu_threads" => Sys.CPU_THREADS,
+        "cpu_info" => Sys.cpu_info(),
+        "uptime" => Sys.uptime(),
+        "loadavg" => Sys.loadavg(),
+        "free_memory" => Sys.free_memory(),
+        "total_memory" => Sys.total_memory()
+    )
 end
 
 """
@@ -138,16 +163,4 @@ function load_benchmarks(filename)
     out
 end
 
-function julia_info()
-    Dict(
-        :version => Base.VERSION,
-        :commit => Base.GIT_VERSION_INFO.commit,
-        :date => Base.GIT_VERSION_INFO.date_string,
-    )
-end
-
-function manifest_info()
-    manifest = Base.project_file_manifest_path(Base.current_project())
-    Pkg.Types.read_manifest(manifest)
-end
 
