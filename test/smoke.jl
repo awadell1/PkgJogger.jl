@@ -20,7 +20,7 @@ include("utils.jl")
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
 
     # Saving and Loading
-    file = PkgJogger.save_benchmarks(r)
+    file = JogPkgJogger.save_benchmarks(r)
     @test isfile(file)
     r2 = PkgJogger.load_benchmarks(file)
     test_loaded_results(r2)

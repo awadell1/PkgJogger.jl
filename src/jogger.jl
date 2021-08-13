@@ -16,6 +16,7 @@ macro jog(pkg)
 
     # Locate benchmark folder
     bench_dir = benchmark_dir(pkg)
+    trial_dir = joinpath(bench_dir, "trial")
 
     # Generate Using Statements
     using_statements = Expr[]
@@ -69,6 +70,18 @@ macro jog(pkg)
                     suite[n] = m.suite
                 end
                 suite
+            end
+
+            """
+                save_benchmarks(results)
+
+            Saves benchmarking results for $($pkg) to $($trial_dir)
+
+            Results are saved as *.json.gz files and can be loaded using
+            [`PkgJogger.load_benchmarks`](@ref PkgJogger.load_benchmarks)
+            """
+            function save_benchmarks(results)
+                PkgJogger._save_jogger_benchmarks($bench_dir, results)
             end
 
             $(dispatch_funcs...)

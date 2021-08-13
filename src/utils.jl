@@ -30,13 +30,14 @@ function ci()
 
     # Run in sandbox
     pkgname = Symbol(pkg.name)
+    jogger = Symbol(:Jog, pkg.name)
     sandbox(pkg, load_path) do
         @eval Main begin
             using PkgJogger
             using $pkgname
             jogger = @jog $pkgname
-            result = jogger.benchmark()
-            filename = PkgJogger.save_benchmarks(result)
+            result = $jogger.benchmark()
+            filename = $jogger.save_benchmarks(result)
             @info "Saved benchmarks to $filename"
         end
     end
@@ -82,27 +83,24 @@ function instantiate(project_file)
 end
 
 """
-    save_benchmarks(results::BenchmarkGroup)
+    save_benchmarks(filename, results::BenchmarkGroup)
 
-Save benchmarking results to `PKG_DIR/benchmarks/trail/UUID.jld2` for later analysis.
+Save benchmarking results to `filename.json.gz` for later
+analysis.
 
-File Contents
-    - Julia Version, Commit and Commit date
-    - Manifest for the current project
-    - Benchmarking Results
+## File Contents
+- Julia Version, Commit and Commit date
+- Manifest for the current project
+- Benchmarking Results
 
-File Format: Results are saved using JLD2 and
+## File Format:
+Results are saved as a gzip compressed JSON file and can be loaded
+with [PkgJogger.load_benchmarks](@ref PkgJogger.load_benchmarks)
+
 """
-function save_benchmarks(results::BenchmarkTools.BenchmarkGroup)
-    # Generate output file
-    filename = joinpath(
-        benchmark_dir(pwd()),
-        "trial",
-        "$(UUIDs.uuid4()).json.gz"
-    )
-    mkpath(dirname(filename))
-
+function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
     # Collect system information to save
+    mkpath(dirname(filename))
     out = Dict(
         "julia" => julia_info(),
         "manifest" => manifest_info(),
@@ -116,6 +114,17 @@ function save_benchmarks(results::BenchmarkTools.BenchmarkGroup)
     filename
 end
 
+# Convenience Wrapper so JogPkgName doesn't required UUIDs to be loaded
+function _save_jogger_benchmarks(dir, results::BenchmarkTools.BenchmarkGroup)
+    filename = joinpath(dir, "$(UUIDs.uuid4()).json.gz")
+    save_benchmarks(filename, results)
+end
+
+"""
+    load_benchmarks(filename::String)::Dict
+
+Load benchmarking results saved by [PkgJogger.save_benchmarks](@ref PkgJogger.save_benchmarks)
+"""
 function load_benchmarks(filename)
     # Decompress
     out = open(JSON.parse, GzipDecompressorStream, filename)
