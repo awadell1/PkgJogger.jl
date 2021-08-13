@@ -56,9 +56,9 @@ function sandbox(f, pkg, load_path)
     # Add the project being benchmarked, then JOGGER_PKGS restricted to existing
     # manifest. Ie. The benchmarked projects drives compat not PkgJogger
     Pkg.activate(;temp=true)
-    Pkg.develop(pkg; io=IOBuffer())
-    Pkg.add(JOGGER_PKGS; preserve=PRESERVE_ALL, io=IOBuffer())
-    Pkg.instantiate(; io=IOBuffer())
+    Pkg.develop(pkg; io=devnull)
+    Pkg.add(JOGGER_PKGS; preserve=PRESERVE_ALL, io=devnull)
+    Pkg.instantiate(; io=devnull)
 
     # Update LOAD_PATH
     # Only load code from: Temp Environment or benchmark/Project.toml
@@ -81,9 +81,9 @@ end
 function instantiate(project_file)
     @info "Instantiating: $project_file"
     cur_project = Pkg.project().path
-    Pkg.activate(project_file; io=IOBuffer())
-    Pkg.instantiate(; io=IOBuffer())
-    Pkg.activate(cur_project; io=IOBuffer())
+    Pkg.activate(project_file; io=devnull)
+    Pkg.instantiate(; io=devnull)
+    Pkg.activate(cur_project; io=devnull)
 end
 
 """
