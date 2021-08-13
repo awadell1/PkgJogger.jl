@@ -6,7 +6,10 @@ include("utils.jl")
 @testset "CI workflow" begin
     # Setup CI Workflow Cmd
     path = joinpath(pathof(PkgJogger), "..", "..") |> abspath
-    cmd = Cmd(["julia", "-e", "@info pwd(); using PkgJogger; @info PkgJogger.ci()"]);
+    cmd = Cmd([
+        "julia", "--code-coverage", "--eval",
+        "@info pwd(); using PkgJogger; @info PkgJogger.ci()"
+    ]);
     cmd = ignorestatus(cmd)
     cmd = setenv(cmd,
         "JULIA_PROJECT" => path,            # Don't use the test environment
