@@ -31,6 +31,9 @@ include("utils.jl")
     # Check if benchmark results were saved
     logs = read(logging, String)
     m = match(r"Saved benchmarks to (.*)\n", logs)
+    m !== nothing || @info logs
+    @test m !== nothing
+
     @test length(m.captures) == 1
     results_file = m.captures[1]
     @test isfile(results_file)
