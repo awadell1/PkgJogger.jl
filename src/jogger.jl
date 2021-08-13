@@ -3,12 +3,32 @@
 """
     @jog PkgName
 
-Creates a module named `JogPkgName` of benchmarks for `PkgName` pulled from
-`PKG_DIR/benchmark/bench_*.jl`
+Creates a module named `JogPkgName` for running benchmarks for `PkgName`.
 
-Methods:
- - `suite()`        Return a `BenchmarkGroup` of the benchmarks for `PkgName`
- - `benchmark()`    Warmup, tune and run the suite
+Most edits to benchmark files are correctly tracked by Revise.jl. If they are
+not, re-run `@jog PkgName` to fully reload `JogPkgName`.
+
+## Methods
+
+- `suite`       Return a `BenchmarkGroup` of the benchmarks for `PkgName`
+- `benchmark`   Warmup, tune and run the suite
+- `run`         Dispatch to `BenchmarkTools.run(suite(), args...; kwargs...)`
+- `warmup`      Dispatch to `BenchmarkTools.warmup(suite(), args...; kwargs...)`
+- `save_benchmarks`     Save benchmarks for `PkgName` using an unique filename
+
+## Isolated Benchmarks
+
+Each benchmark file, is wrapped in it's own module preventing code loaded in one
+file from being visible in another (unless explicitly included).
+
+## Example
+
+```julia
+using AwesomePkg, PkgJogger
+@jog AwesomePkg
+results = JogAwesomePkg.benchmark()
+file = JogAwesomePkg.save_benchmarks(results)
+```
 """
 macro jog(pkg)
     # Module Name
@@ -75,10 +95,11 @@ macro jog(pkg)
             """
                 save_benchmarks(results)
 
-            Saves benchmarking results for $($pkg) to $($trial_dir)
+            Saves benchmarking results for $($pkg) to $($trial_dir) with a
+            unique filename. Returns path to saved results
 
             Results are saved as *.json.gz files and can be loaded using
-            [`PkgJogger.load_benchmarks`](@ref PkgJogger.load_benchmarks)
+            [`PkgJogger.load_benchmarks`](@ref)
             """
             function save_benchmarks(results)
                 PkgJogger._save_jogger_benchmarks($bench_dir, results)
@@ -90,9 +111,15 @@ macro jog(pkg)
 end
 
 """
-    benchmark_dir(pkg)
+    benchmark_dir(pkg::Module)
+    benchmark_dir(pkg::PackageSpec)
+    benchmark_dir(project_path::String)
 
-Expected location of benchmarks for `pkg`
+Returns the absolute path of the benchmarks folder for `pkg`.
+
+Supported Benchmark Directories:
+- `PKG_DIR/benchmark`
+
 """
 benchmark_dir(pkg::Module) = benchmark_dir(Base.PkgId(pkg))
 benchmark_dir(pkg::Symbol) = benchmark_dir(Base.PkgId(string(pkg)))
@@ -115,7 +142,12 @@ function benchmark_dir(pkg::Pkg.Types.PackageSpec)
     benchmark_dir(pkg_path)
 end
 
+"""
+    locate_benchmarks(pkg::Module)
+    locate_benchmarks(bench_dir::String)
 
+Returns a dict of `name => filename` of identified benchmark files
+"""
 function locate_benchmarks(dir)
     suite = Dict{String, String}()
     for file in readdir(dir; join=true)
@@ -126,6 +158,7 @@ function locate_benchmarks(dir)
     end
     suite
 end
+locate_benchmarks(pkg::Module) = benchmark_dir(pkg) |> locate_benchmarks
 
 """
     build_module(name, file)

@@ -1,16 +1,20 @@
 """
-    ci()
 
-Runs CI workflow for the current directory
+Sets up an isolated benchmarking environment and then runs the following:
 
-```shell
-julia -e 'using Pkg; Pkg.add("PkgJogger"); PkgJogger.ci()'
+```julia
+using PkgJogger
+using PkgName
+jogger = @jog PkgName
+result = JogPkgName.benchmark()
+filename = JogPkgName.save_benchmarks(result)
+@info "Saved benchmarks to \$filename"
+
 ```
 
-Will do the following:
+Where `PkgName` is the name of the package in the current directory
 
 """
-
 function ci()
     # Locate the package being benchmarked
     project = Base.current_project()
@@ -94,12 +98,13 @@ analysis.
 
 ## File Contents
 - Julia Version, Commit and Commit date
-- Manifest for the current project
+- System Information
+- Timestamp
 - Benchmarking Results
 
 ## File Format:
 Results are saved as a gzip compressed JSON file and can be loaded
-with [PkgJogger.load_benchmarks](@ref PkgJogger.load_benchmarks)
+with [`PkgJogger.load_benchmarks`](@ref)
 
 """
 function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
@@ -116,13 +121,13 @@ function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
     open(GzipCompressorStream, filename, "w") do io
         JSON.print(io, out)
     end
-    filename
 end
 
 # Convenience Wrapper so JogPkgName doesn't required UUIDs to be loaded
 function _save_jogger_benchmarks(dir, results::BenchmarkTools.BenchmarkGroup)
     filename = joinpath(dir, "$(UUIDs.uuid4()).json.gz")
     save_benchmarks(filename, results)
+    filename
 end
 
 function julia_info()
@@ -152,7 +157,7 @@ end
 """
     load_benchmarks(filename::String)::Dict
 
-Load benchmarking results saved by [PkgJogger.save_benchmarks](@ref PkgJogger.save_benchmarks)
+Load benchmarking results from `filename`
 """
 function load_benchmarks(filename)
     # Decompress
