@@ -12,21 +12,25 @@ Will do the following:
 """
 
 function ci()
-    # Locate the project being benchmarked
-    pkg = Pkg.Types.EnvCache(Base.current_project()).pkg
+    # Locate the package being benchmarked
+    project = Base.current_project()
+    pkg_toml = Base.parsed_toml(project)
+    pkg = Pkg.PackageSpec(
+        name=pkg_toml["name"],
+        uuid=pkg_toml["uuid"],
+        path=dirname(project),
+    )
 
     # Look for a benchmark project, and add to LOAD_PATH if it exists
     # TODO: Use Sub-project https://github.com/JuliaLang/Pkg.jl/issues/1233
-    bench_dir = benchmark_dir(pkg.path)
+    bench_dir = benchmark_dir(pkg)
     benchmark_project = Base.env_project_file(bench_dir)
     load_path = String[]
     if isfile(benchmark_project)
         @info "Found benchmark project: $benchmark_project"
+        instantiate(bench_dir)
         push!(load_path, bench_dir)
     end
-
-    # Instantiate Projects
-    instantiate.(vcat([pkg.path], load_path))
 
     # Run in sandbox
     pkgname = Symbol(pkg.name)
@@ -52,7 +56,7 @@ function sandbox(f, pkg, load_path)
     # Add the project being benchmarked, then JOGGER_PKGS restricted to existing
     # manifest. Ie. The benchmarked projects drives compat not PkgJogger
     Pkg.activate(;temp=true)
-    Pkg.add(pkg; io=IOBuffer())
+    Pkg.develop(pkg; io=IOBuffer())
     Pkg.add(JOGGER_PKGS; preserve=PRESERVE_ALL, io=IOBuffer())
     Pkg.instantiate(; io=IOBuffer())
 

@@ -103,6 +103,17 @@ end
 function benchmark_dir(pkg_dir::String)
     joinpath(pkg_dir, "benchmark") |> abspath
 end
+function benchmark_dir(pkg::Pkg.Types.PackageSpec)
+    # Locate packages location from a PackageSpec
+    if pkg.path !== nothing
+        pkg_path = pkg.path
+    elseif pkg.repo.source !== nothing
+        pkg_path = pkg.repo.source
+    else
+        error("Unable to locate $pkg")
+    end
+    benchmark_dir(pkg_path)
+end
 
 
 function locate_benchmarks(dir)
