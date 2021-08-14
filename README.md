@@ -28,5 +28,5 @@ following features:
     one-liner:
 
     ```shell
-    julia -e 'using Pkg; Pkg.add("PkgJogger"); PkgJogger.ci()'
+    julia -e 'using Pkg; Pkg.add("PkgJogger"); using PkgJogger; PkgJogger.ci()'
     ```
