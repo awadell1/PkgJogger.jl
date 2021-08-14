@@ -58,7 +58,7 @@ Install PkgJogger, run benchmarks, and save results to a `*.json.gz` with a
 one-line command.
 
 ```shell
-julia -e 'using Pkg; Pkg.add("PkgJogger"); PkgJogger.ci()'
+julia -e 'using Pkg; Pkg.add("PkgJogger"); using PkgJogger; PkgJogger.ci()'
 ```
 
 What gets done:
