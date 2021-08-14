@@ -4,7 +4,7 @@ PkgJogger provides a quick one-liner for setting up, running, and saving benchma
 results as part of a CI/CD pipeline:
 
 ```shell
-julia -e 'using Pkg; Pkg.add("PkgJogger"); PkgJogger.ci()'
+julia -e 'using Pkg; Pkg.add("PkgJogger"); using PkgJogger; PkgJogger.ci()'
 ```
 
 ## Github Actions
@@ -22,7 +22,7 @@ jobs:
             - uses: actions/checkout@v2
             - uses: julia-actions/setup-julia@latest
             - name: Run Benchmarks
-              run: julia -e 'using Pkg; Pkg.add("PkgJogger"); PkgJogger.ci()'
+              run: julia -e 'using Pkg; Pkg.add("PkgJogger"); using PkgJogger; PkgJogger.ci()'
             - uses: actions/upload-artifact@v2
               with:
                 name: benchmarks
