@@ -4,16 +4,18 @@ CurrentModule = PkgJogger
 
 # PkgJogger
 
-*A Benchmarking Framework for Julia*
-
-PkgJogger makes benchmarking easy by providing a framework for running [BenchmarkTool.jl](https://github.com/JuliaCI/BenchmarkTools.jl) benchmarks, while handling all the boilerplate setup.
+PkgJogger provides a framework for running suites of
+[BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) benchmarks
+without the boilerplate.
 
 ## Just write benchmarks
 
-Create a `benchmark/bench_*.jl` file, define a `suite` and go!
+Create a `benchmark/bench_*.jl` file, define a
+[BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) `suite` and
+go!
 
 ```julia
-using Benchmark
+using BenchmarkTools
 using AwesomePkg
 suite = BenchmarkGroup()
 suite["fast"] = @benchmarkable fast_code()

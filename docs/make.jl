@@ -12,6 +12,7 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://awadell1.github.io/PkgJogger.jl",
         assets=String[],
+        analytics = "G-V9E0Q8BDHR",
     ),
     pages=[
         "Home" => "index.md",
