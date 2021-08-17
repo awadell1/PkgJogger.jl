@@ -8,6 +8,7 @@ using JSON
 using Pkg
 using UUIDs
 using Dates
+using LibGit2
 
 export @jog
 

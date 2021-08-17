@@ -9,6 +9,14 @@ function test_loaded_results(r::Dict)
     @test haskey(r, "datetime")
     @test haskey(r, "benchmarks")
     @test r["benchmarks"] isa BenchmarkTools.BenchmarkGroup
+    @testset "git" begin
+        @test haskey(r, "git")
+        if r["git"] !== nothing
+            @test haskey(r["git"], "commit")
+            @test haskey(r["git"], "is_dirty")
+            @test haskey(r["git"], "datetime")
+        end
+    end
 end
 
 """

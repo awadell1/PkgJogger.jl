@@ -107,6 +107,7 @@ analysis.
 - System Information
 - Timestamp
 - Benchmarking Results
+- Git Commit, 'Is Dirty' status and author datetime
 
 ## File Format:
 Results are saved as a gzip compressed JSON file and can be loaded
@@ -119,8 +120,9 @@ function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
     out = Dict(
         "julia" => julia_info(),
         "system" => system_info(),
-        "datetime" =>string(Dates.now()),
+        "datetime" => string(Dates.now()),
         "benchmarks" => results,
+        "git" => git_info(filename),
     )
 
     # Write benchmark to disk
@@ -157,6 +159,28 @@ function system_info()
         "loadavg" => Sys.loadavg(),
         "free_memory" => Sys.free_memory(),
         "total_memory" => Sys.total_memory()
+    )
+end
+
+function git_info(path)
+    # Check if path is a git repo
+    ref_dir = isdir(path) ? path : dirname(path)
+    local repo
+    try
+        repo = GitRepo(ref_dir)
+    catch
+        return nothing
+    end
+
+    # Get Head Commit
+    head = LibGit2.peel(LibGit2.GitCommit, LibGit2.head(repo))
+    author_sig = LibGit2.author(head)
+
+    # Capture Git Info
+    Dict(
+        "commit" => LibGit2.GitHash(head) |> string,
+        "is_dirty" =>  LibGit2.with(LibGit2.isdirty, GitRepo(ref_dir)),
+        "timestamp" => Dates.unix2datetime(author_sig.time) |> string,
     )
 end
 
