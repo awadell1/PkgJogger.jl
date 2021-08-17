@@ -107,7 +107,7 @@ analysis.
 - System Information
 - Timestamp
 - Benchmarking Results
-- Git Commit and 'Is Dirty' status
+- Git Commit, 'Is Dirty' status and author datetime
 
 ## File Format:
 Results are saved as a gzip compressed JSON file and can be loaded
@@ -172,10 +172,15 @@ function git_info(path)
         return nothing
     end
 
+    # Get Head Commit
+    head = LibGit2.peel(LibGit2.GitCommit, LibGit2.head(repo))
+    author_sig = LibGit2.author(head)
+
     # Capture Git Info
     Dict(
-        "commit" => LibGit2.revparseid(GitRepo(ref_dir), "HEAD") |> string,
+        "commit" => LibGit2.GitHash(head) |> string,
         "is_dirty" =>  LibGit2.with(LibGit2.isdirty, GitRepo(ref_dir)),
+        "timestamp" => Dates.unix2datetime(author_sig.time) |> string,
     )
 end
 

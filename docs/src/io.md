@@ -10,7 +10,7 @@ These methods build on
   - Julia Version, Commit and Build Date
   - System Information (Essentially everything in `Sys`)
   - Timestamp of when the results were saved
-  - If benchmarks are in a Git Repository, the Git Commit and "Is Dirty" status
+  - Git Information if saved in a Git Repository
 
 Overall the resulting files are ~10x smaller, despite capturing additional information.
 

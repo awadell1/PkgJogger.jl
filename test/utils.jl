@@ -14,6 +14,7 @@ function test_loaded_results(r::Dict)
         if r["git"] !== nothing
             @test haskey(r["git"], "commit")
             @test haskey(r["git"], "is_dirty")
+            @test haskey(r["git"], "datetime")
         end
     end
 end
