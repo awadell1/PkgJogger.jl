@@ -38,4 +38,25 @@ function create_temp_version()
     return dir
 end
 
+"""
+    test_subfile(parent, child)
+
+Test that `child` is a child of `parent`
+"""
+function test_subfile(parent, child)
+    @testset "$child in $parent" begin
+        @test isfile(child)
+        @test isdir(parent)
+
+        # Get full path split into parts
+        parent_path = splitpath(abspath(parent))
+        child_path = splitpath(abspath(child))
+
+        # Check that parent is a root of child
+        n = length(parent_path)
+        @assert n < length(child_path)
+        @test all( parent_path .== child_path[1:n])
+    end
+end
+
 

@@ -26,6 +26,10 @@ include("utils.jl")
     test_loaded_results(r2)
     @test r == r2["benchmarks"]
 
+    # Test results location
+    trial_dir = joinpath(PkgJogger.benchmark_dir(PkgJogger), "trial")
+    test_subfile(trial_dir, file)
+
     # Clean up file and delete benchmark folder in test
     rm(file)
     rm(joinpath(@__DIR__, "benchmark"); force=true, recursive=true)

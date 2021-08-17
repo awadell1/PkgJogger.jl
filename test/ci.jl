@@ -63,6 +63,10 @@ end
     results_file = m.captures[1]
     @test isfile(results_file)
 
+    # Check location of results_file
+    trial_dir = joinpath(PkgJogger.benchmark_dir(temp_project), "trial")
+    test_subfile(trial_dir, results_file)
+
     # Check that results file is valid
     results = PkgJogger.load_benchmarks(results_file)
     test_loaded_results(results)
