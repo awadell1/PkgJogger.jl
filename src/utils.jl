@@ -60,7 +60,6 @@ function sandbox(f, pkg, load_path)
     self = PackageSpec(
         name = JOGGER_PKGS[1].name,
         uuid = JOGGER_PKGS[1].uuid,
-        path = dirname(dirname(pathof(@__MODULE__))),
     )
 
     # Build temporary environment
