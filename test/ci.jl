@@ -3,36 +3,49 @@ using PkgJogger
 
 include("utils.jl")
 
-@testset "CI workflow" begin
-    # Setup CI Workflow Cmd
-    path = joinpath(pathof(PkgJogger), "..", "..") |> abspath
-    cmd = Cmd([
-        "julia", "--code-coverage", "--eval",
-        "@info pwd(); using PkgJogger; @info PkgJogger.ci()"
-    ]);
-    cmd = ignorestatus(cmd)
-    cmd = setenv(cmd,
-        "JULIA_PROJECT" => path,            # Don't use the test environment
-        "JULIA_LOAD_PATH" => "@:@stdlib",   # Enable stdlib but ignore user projects
-        "PATH" => Sys.BINDIR                # Add Julia to the PATH
-    )
+function run_ci_workflow(pkg_dir)
+    # Create temporary default project
+    mktempdir() do temp_project
+        # Get a temporary version of PkgJogger
+        temp_version = create_temp_version()
 
-    # Capture stdout and stderror
-    cmd_stdout =  IOBuffer(;append=true)
-    logging = IOBuffer(;append=true)
-    cmd = Cmd(cmd; dir=path)
-    cmd = pipeline(cmd; stdout=cmd_stdout, stderr=logging)
+        # Construct CI Command
+        cmd = Cmd([
+            "julia", "--code-coverage", "--eval",
+            "using Pkg; Pkg.develop(path=\"$temp_version\"); using PkgJogger; PkgJogger.ci()"
+        ]) |> ignorestatus
 
-    # Run workflow, logging output on
-    proc = run(cmd)
-    if proc.exitcode != 0
-        @info read(cmd_stdout, String)
-        @info read(logging, String)
+        # Set Environmental Variables
+        cmd = setenv(cmd,
+            "JULIA_PROJECT" => temp_project,    # Use the temporary project
+            "JULIA_LOAD_PATH" => "@:@stdlib",   # Enable stdlib but ignore user projects
+            "PATH" => Sys.BINDIR,               # Add Julia to the PATH
+        )
+
+       # Capture stdout and stderror
+        cmd_stdout =  IOBuffer(;append=true)
+        cmd_stderr = IOBuffer(;append=true)
+        cmd = Cmd(cmd; dir=pkg_dir)
+        cmd = pipeline(cmd; stdout=cmd_stdout, stderr=cmd_stderr)
+        @info cmd
+
+        # Run workflow and return output
+        proc = run(cmd)
+        if proc.exitcode != 0
+            @info read(cmd_stdout, String)
+            @info read(cmd_stderr, String)
+            error("$cmd exited with $proc.exitcode")
+        end
+        return proc, cmd_stdout, cmd_stderr
     end
-    @test proc.exitcode == 0
+end
+
+@testset "PkgJogger.jl" begin
+    temp_project = create_temp_version()
+    proc, cmd_stdout, cmd_stderr = run_ci_workflow(temp_project)
 
     # Check if benchmark results were saved
-    logs = read(logging, String)
+    logs = read(cmd_stderr, String)
     m = match(r"Saved benchmarks to (.*)\n", logs)
     m !== nothing || @info logs
     @test m !== nothing
