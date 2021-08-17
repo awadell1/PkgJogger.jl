@@ -19,12 +19,19 @@ include("utils.jl")
     r = JogPkgJogger.run()
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
 
+    # BENCHMARK_DIR
+    @test JogPkgJogger.BENCHMARK_DIR == PkgJogger.benchmark_dir(PkgJogger)
+
     # Saving and Loading
     file = JogPkgJogger.save_benchmarks(r)
     @test isfile(file)
     r2 = PkgJogger.load_benchmarks(file)
     test_loaded_results(r2)
     @test r == r2["benchmarks"]
+
+    # Test results location
+    trial_dir = joinpath(JogPkgJogger.BENCHMARK_DIR, "trial")
+    test_subfile(trial_dir, file)
 
     # Clean up file and delete benchmark folder in test
     rm(file)

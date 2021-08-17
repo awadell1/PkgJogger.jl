@@ -80,6 +80,13 @@ macro jog(pkg)
             $(suite_exp...)
 
             """
+            BENCHMARK_DIR
+
+            Directory of benchmarks for $($pkg)
+            """
+            const BENCHMARK_DIR = $bench_dir
+
+            """
                 suite()
 
             Gets the BenchmarkTools suite for $($pkg)
@@ -102,7 +109,7 @@ macro jog(pkg)
             [`PkgJogger.load_benchmarks`](@ref)
             """
             function save_benchmarks(results)
-                PkgJogger._save_jogger_benchmarks($bench_dir, results)
+                PkgJogger._save_jogger_benchmarks($trial_dir, results)
             end
 
             $(dispatch_funcs...)
