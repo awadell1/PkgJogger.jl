@@ -47,24 +47,34 @@ function run_ci_workflow(pkg_dir)
     end
 end
 
-@testset "PkgJogger.jl" begin
-    temp_project = create_temp_version()
-    proc, cmd_stdout, cmd_stderr = run_ci_workflow(temp_project)
-
+function test_ci_output(proc, cmd_stdout, cmd_stderr)
     # Check if benchmark results were saved
     logs = read(cmd_stderr, String)
     m = match(r"Saved benchmarks to (.*)\n", logs)
-    m !== nothing || @info logs
+    m !== nothing || print(logs)
     @test m !== nothing
 
     @test length(m.captures) == 1
     results_file = m.captures[1]
     @test isfile(results_file)
 
-    # Check location of results_file
-    @test all( ("benchmark", "trial") .== splitpath(results_file)[end-2:end-1] )
-
     # Check that results file is valid
     results = PkgJogger.load_benchmarks(results_file)
     test_loaded_results(results)
+    results_file
+end
+
+@testset "PkgJogger.jl" begin
+    temp_project = create_temp_version()
+    proc, cmd_stdout, cmd_stderr = run_ci_workflow(temp_project)
+    results_file = test_ci_output(proc, cmd_stdout, cmd_stderr)
+    @test all( ("benchmark", "trial") .== splitpath(results_file)[end-2:end-1] )
+end
+
+@testset "Unregistered Package" begin
+    project = joinpath(@__DIR__, "Example.jl")
+    proc, cmd_stdout, cmd_stderr = run_ci_workflow(project)
+    results_file = test_ci_output(proc, cmd_stdout, cmd_stderr)
+    trial_dir = joinpath(PkgJogger.benchmark_dir(project), "trial")
+    test_subfile(trial_dir, results_file)
 end
