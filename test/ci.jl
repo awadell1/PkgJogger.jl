@@ -1,5 +1,6 @@
 using Test
 using PkgJogger
+using Glob
 
 include("utils.jl")
 
@@ -11,7 +12,7 @@ function run_ci_workflow(pkg_dir)
 
         # Construct CI Command
         cmd = Cmd([
-            "julia", "--code-coverage", "--eval",
+            "julia", "--code-coverage=all", "--eval",
             "using Pkg; Pkg.develop(path=\"$temp_version\"); using PkgJogger; PkgJogger.ci()"
         ]) |> ignorestatus
 
@@ -36,6 +37,14 @@ function run_ci_workflow(pkg_dir)
             @info read(cmd_stderr, String)
             error("$cmd exited with $proc.exitcode")
         end
+
+        # Copy back *.cov files so coverage counts are correct
+        for covfile in glob("**/*.cov", temp_version)
+            dst = joinpath(PKG_JOGGER_PATH, relpath(covfile, temp_version))
+            @info covfile, dst
+            cp(covfile, dst)
+        end
+
         return proc, cmd_stdout, cmd_stderr
     end
 end
