@@ -28,7 +28,6 @@ function run_ci_workflow(pkg_dir)
         cmd_stderr = IOBuffer(;append=true)
         cmd = Cmd(cmd; dir=pkg_dir)
         cmd = pipeline(cmd; stdout=cmd_stdout, stderr=cmd_stderr)
-        @info cmd
 
         # Run workflow and return output
         proc = run(cmd)
@@ -41,7 +40,6 @@ function run_ci_workflow(pkg_dir)
         # Copy back *.cov files so coverage counts are correct
         for covfile in glob("**/*.cov", temp_version)
             dst = joinpath(PKG_JOGGER_PATH, relpath(covfile, temp_version))
-            @info covfile, dst
             cp(covfile, dst)
         end
 
@@ -64,8 +62,7 @@ end
     @test isfile(results_file)
 
     # Check location of results_file
-    trial_dir = joinpath(PkgJogger.benchmark_dir(temp_project), "trial")
-    test_subfile(trial_dir, results_file)
+    @test all( ("benchmark", "trial") .== splitpath(results_file)[end-2:end-1] )
 
     # Check that results file is valid
     results = PkgJogger.load_benchmarks(results_file)
