@@ -31,7 +31,7 @@ include("utils.jl")
 
     # If this is a git repo, there should be a git entry
     if isdir(joinpath(PKG_JOGGER_PATH, ".git"))
-        @test haskey(r2, "git")
+        @test r2["git"] !== nothing
     end
 
     # Test results location
