@@ -29,6 +29,11 @@ include("utils.jl")
     test_loaded_results(r2)
     @test r == r2["benchmarks"]
 
+    # If this is a git repo, there should be a git entry
+    if isdir(joinpath(PKG_JOGGER_PATH, ".git"))
+        @test haskey(r2, "git")
+    end
+
     # Test results location
     trial_dir = joinpath(JogPkgJogger.BENCHMARK_DIR, "trial")
     test_subfile(trial_dir, file)
