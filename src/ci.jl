@@ -162,7 +162,7 @@ function system_info()
 end
 
 function find_git_repo(path)
-    if @show isdir(joinpath(path, ".git"))
+    if isdir(joinpath(path, ".git"))
         return path
     end
     next = dirname(path)
