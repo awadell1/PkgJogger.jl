@@ -112,7 +112,6 @@ analysis.
 ## File Format:
 Results are saved as a gzip compressed JSON file and can be loaded
 with [`PkgJogger.load_benchmarks`](@ref)
-
 """
 function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
     # Collect system information to save

@@ -1,23 +1,5 @@
 # This file contains functions related to building the JogPkgName module
 
-# List of Module => function that `JogPkgName` will dispatch to
-const DISPATCH_METHODS = [
-    :BenchmarkTools => :run,
-    :BenchmarkTools => :warmup,
-    :PkgJogger => :benchmark
-]
-
-"""
-    benchmark(s::BenchmarkGroup)
-
-Warmup, tune and run a benchmark suite
-"""
-function benchmark(s::BenchmarkTools.BenchmarkGroup)
-    warmup(s)
-    tune!(s)
-    BenchmarkTools.run(s)
-end
-
 """
     @jog PkgName
 
@@ -71,15 +53,6 @@ macro jog(pkg)
         push!(benchmarks, Symbol(name))
     end
 
-    # Dispatch to PkgJogger functions
-    dispatch_funcs = Expr[]
-    for (m, f) in DISPATCH_METHODS
-        exp = quote
-            $f(args...; kwargs...) = $(m).$(f)(suite(), args...; kwargs...)
-        end
-        push!(dispatch_funcs, exp)
-    end
-
     # Flatten out modules into a Vector{Expr}
     if !isempty(suite_modules)
         suite_exp = getfield(MacroTools.flatten(quote $(suite_modules...) end), :args)
@@ -105,9 +78,9 @@ macro jog(pkg)
             const BENCHMARK_DIR = $bench_dir
 
             """
-                suite()
+                suite()::BenchmarkGroup
 
-            Gets the BenchmarkTools suite for $($pkg)
+            The BenchmarkTools suite for $($pkg)
             """
             function suite()
                 suite = BenchmarkTools.BenchmarkGroup()
@@ -118,19 +91,49 @@ macro jog(pkg)
             end
 
             """
-                save_benchmarks(results)
+                benchmark(; verbose = false, kwargs...)
 
-            Saves benchmarking results for $($pkg) to $($trial_dir) with a
-            unique filename. Returns path to saved results
+            Warmup, tune and run the benchmarking suite for $($pkg)
+            """
+            function benchmark(; verbose = false, kwargs...)
+                s = suite()
+                warmup(s; verbose = verbose)
+                BenchmarkTools.tune!(s; verbose = verbose, kwargs)
 
-            Results are saved as *.json.gz files and can be loaded using
-            [`PkgJogger.load_benchmarks`](@ref)
+            end
+
+            """
+                run(args...; verbose::Bool = false, kwargs)
+
+            Run the benchmarking suite for $($pkg). See
+            [`BenchmarkTools.run`](https://juliaci.github.io/BenchmarkTools.jl/stable/reference/#Base.run)
+            for more options
+            """
+            function run(; verbose = false, kwargs...)
+                BenchmarkTools.run(suite, args...; verbose = verbose, kwargs...)
+            end
+
+            """
+                warmup(; verbose::Bool = false)
+
+            Warmup the benchmarking suite for $($pkg)
+            """
+            function warmup(; verbose = false)
+                BenchmarkTools.warmup(suite; verbose = verbose)
+            end
+
+            """
+                save_benchmarks(results::BenchmarkGroup)::String
+
+            Saves benchmarking results for $($pkg) to `BENCHMARK_DIR/uuid4().json.gz`.
+
+            Returns the path to the saved results
+
+            Results can be loaded with [`PkgJogger.load_benchmarks(filename)`](@ref)
             """
             function save_benchmarks(results)
                 PkgJogger._save_jogger_benchmarks($trial_dir, results)
             end
-
-            $(dispatch_funcs...)
         end
     end
 end

@@ -1,0 +1,9 @@
+```@docs
+PkgJogger.@jog
+JogExample.suite
+JogExample.benchmark
+JogExample.warmup
+JogExample.run
+JogExample.save_benchmarks
+JogExample.BENCHMARK_DIR
+```
