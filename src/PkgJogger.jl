@@ -24,8 +24,8 @@ const JOGGER_PKGS = [
     PkgId(UUID("295af30f-e4ad-537b-8983-00126c2a3abe"), "Revise"),
 ]
 
-include("dispatch.jl")
 include("jogger.jl")
 include("utils.jl")
+include("ci.jl")
 
 end
