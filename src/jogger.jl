@@ -91,15 +91,15 @@ macro jog(pkg)
             end
 
             """
-                benchmark(; verbose = false, kwargs...)
+                benchmark(; verbose = false)
 
             Warmup, tune and run the benchmarking suite for $($pkg)
             """
-            function benchmark(; verbose = false, kwargs...)
+            function benchmark(; verbose = false)
                 s = suite()
-                warmup(s; verbose = verbose)
-                BenchmarkTools.tune!(s; verbose = verbose, kwargs)
-
+                BenchmarkTools.warmup(s; verbose)
+                BenchmarkTools.tune!(s; verbose = verbose)
+                BenchmarkTools.run(s; verbose = verbose)
             end
 
             """
@@ -109,8 +109,8 @@ macro jog(pkg)
             [`BenchmarkTools.run`](https://juliaci.github.io/BenchmarkTools.jl/stable/reference/#Base.run)
             for more options
             """
-            function run(; verbose = false, kwargs...)
-                BenchmarkTools.run(suite, args...; verbose = verbose, kwargs...)
+            function run(args...; verbose = false, kwargs...)
+                BenchmarkTools.run(suite(), args...; verbose = verbose, kwargs...)
             end
 
             """
@@ -119,7 +119,7 @@ macro jog(pkg)
             Warmup the benchmarking suite for $($pkg)
             """
             function warmup(; verbose = false)
-                BenchmarkTools.warmup(suite; verbose = verbose)
+                BenchmarkTools.warmup(suite(); verbose)
             end
 
             """
