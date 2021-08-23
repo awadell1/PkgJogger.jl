@@ -130,13 +130,6 @@ function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
     end
 end
 
-# Convenience Wrapper so JogPkgName doesn't required UUIDs to be loaded
-function _save_jogger_benchmarks(dir, results::BenchmarkTools.BenchmarkGroup)
-    filename = joinpath(dir, "$(UUIDs.uuid4()).json.gz")
-    save_benchmarks(filename, results)
-    filename
-end
-
 function julia_info()
     Dict(
         :version => Base.VERSION,
