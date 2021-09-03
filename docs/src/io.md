@@ -32,9 +32,11 @@ results = JogAwesomePkg.benchmark()
 JogAwesomePkg.save_benchmarks(results)
 ```
 
+See also: [`JogExample.save_benchmarks`](@ref)
+
 ## Methods
 
-```@autodocs
-Modules = [PkgJogger]
-Pages = ["utils.jl"]
+```@docs
+PkgJogger.save_benchmarks
+PkgJogger.load_benchmarks
 ```
