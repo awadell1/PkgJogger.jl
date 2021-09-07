@@ -78,5 +78,6 @@ function judge(new, old; kwargs...)
     judge(new_results, old_results; kwargs...)
 end
 
+_get_benchmarks(b::BenchmarkTools.BenchmarkGroup) = b
 _get_benchmarks(b::Dict) =  b["benchmarks"]::BenchmarkTools.BenchmarkGroup
 _get_benchmarks(filename::String) = load_benchmarks(filename) |> _get_benchmarks

@@ -164,7 +164,7 @@ macro jog(pkg)
             Identical to [`PkgJogger.judge`](@ref), but accepts UUIDs for `new` and `old`
             """
             function judge(new, old; kwargs...)
-                PkgJogger.judge(load_benchmarks(new), _get_benchmarks(old); kwargs...)
+                PkgJogger.judge(_get_benchmarks(new), _get_benchmarks(old); kwargs...)
             end
             _get_benchmarks(b::AbstractString) = load_benchmarks(b)
             _get_benchmarks(b) = PkgJogger._get_benchmarks(b)
