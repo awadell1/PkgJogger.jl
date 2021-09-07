@@ -9,15 +9,27 @@ Pkg.develop(path="Example.jl/")
 using Example
 @jog Example
 
+function gen_example()
+    results = JogExample.benchmark()
+    filename = JogExample.save_benchmarks(results)
+    dict = JogExample.load_benchmarks(filename)
+    uuid = get_uuid(filename)
+    return results, filename, dict, uuid
+end
+
+function test_judge(f, new, old)
+    @inferred f(new, old)
+    judgement = f(new, old)
+    @test typeof(judgement) <: BenchmarkGroup
+end
+
 # Run Benchmarks for testing
-r1 = JogExample.benchmark() |> JogExample.save_benchmarks
-r2 = JogExample.benchmark() |> JogExample.save_benchmarks
+new = gen_example()
+old = gen_example()
 
-# Get UUIDs
-r1_uuid = get_uuid(r1)
-r2_uuid = get_uuid(r2)
-
-@test typeof(PkgJogger.judge(r1, r2)) <: BenchmarkGroup
-@testset "Test loading" for new=[r1, r1_uuid], old=[r2, r2_uuid]
-    @test typeof(JogExample.judge(new, old)) <: BenchmarkGroup
+@testset "Test PkgJogger.judge" for (n, o) in Iterators.product(new[1:3], old[1:3])
+    test_judge(PkgJogger.judge, n, o)
+end
+@testset "Test JogPkgName.judge" for (n, o) in Iterators.product(new, old)
+    test_judge(JogExample.judge, n, o)
 end
