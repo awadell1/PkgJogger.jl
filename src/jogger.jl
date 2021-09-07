@@ -128,13 +128,46 @@ macro jog(pkg)
 
             Returns the path to the saved results
 
-            Results can be loaded with [`PkgJogger.load_benchmarks(filename)`](@ref)
+            Results can be loaded with [`PkgJogger.load_benchmarks(filename)`](@ref) or
+            [`$($modname).load_benchmarks(uuid)`](@ref)
             """
             function save_benchmarks(results)
                 filename = joinpath(BENCHMARK_DIR, "trial", "$(UUIDs.uuid4()).json.gz")
                 PkgJogger.save_benchmarks(filename, results)
                 filename
             end
+
+            """
+                load_benchmarks(filename::String)::Dict
+                load_benchmarks(uuid::String)::Dict
+                load_benchmarks(uuid::UUID)::Dict
+
+            Loads benchmarking results for $($pkg) from `BENCHMARK_DIR/trial`
+            """
+            load_benchmarks(uuid::UUIDs.UUID) = load_benchmarks(string(uuid))
+            function load_benchmarks(uuid::AbstractString)
+                # Check if input is a filename
+                isfile(uuid) && return PkgJogger.load_benchmarks(uuid)
+
+                # Check if a valid benchmark uuid
+                path = joinpath(BENCHMARK_DIR, "trial", uuid * ".json.gz")
+                @assert isfile(path) "Missing benchmarking results for $uuid, expected path: $path"
+                PkgJogger.load_benchmarks(path)
+            end
+
+            """
+                judge(new, old; metric=Statistics.median, kwargs...)
+
+            Compares benchmarking results from `new` vs `old` for regressions/improvements
+            using `metric` as a basis. Additional `kwargs` are passed to `BenchmarkTools.judge`
+
+            Identical to [`PkgJogger.judge`](@ref), but accepts UUIDs for `new` and `old`
+            """
+            function judge(new, old; kwargs...)
+                PkgJogger.judge(load_benchmarks(new), _get_benchmarks(old); kwargs...)
+            end
+            _get_benchmarks(b::AbstractString) = load_benchmarks(b)
+            _get_benchmarks(b) = PkgJogger._get_benchmarks(b)
         end
     end
 end

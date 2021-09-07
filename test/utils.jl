@@ -67,4 +67,12 @@ function test_subfile(parent, child)
     end
 end
 
+"""
+    get_uuid(filename)
+
+Extract benchmark UUID from filename
+"""
+function get_uuid(filename)
+    splitpath(filename)[end] |> x -> split(x, ".")[1]
+end
 

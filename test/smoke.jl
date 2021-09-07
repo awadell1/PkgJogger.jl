@@ -1,5 +1,6 @@
 using Test
 using PkgJogger
+using UUIDs
 import BenchmarkTools
 
 include("utils.jl")
@@ -28,6 +29,24 @@ include("utils.jl")
     r2 = PkgJogger.load_benchmarks(file)
     test_loaded_results(r2)
     @test r == r2["benchmarks"]
+
+    # Load with JogPkgJogger
+    @testset "Jogger's load_benchmarks" begin
+        uuid = get_uuid(file)
+        r3 = JogPkgJogger.load_benchmarks(uuid)
+        r4 = JogPkgJogger.load_benchmarks(UUID(uuid))
+        @test r3 == r4
+        @test r3["benchmarks"] == r
+        @test r4["benchmarks"] == r
+        @test r2 == r3 == r4
+
+        # Check that we error for invalid uuids
+        @test_throws AssertionError JogPkgJogger.load_benchmarks("not-a-uuid")
+        @test_throws AssertionError JogPkgJogger.load_benchmarks(UUIDs.uuid4())
+    end
+
+    # Test Judging
+    @test_nowarn JogPkgJogger.judge(file, file)
 
     # If this is a git repo, there should be a git entry
     if isdir(joinpath(PKG_JOGGER_PATH, ".git"))
