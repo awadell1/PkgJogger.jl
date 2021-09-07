@@ -31,5 +31,6 @@ JogExample.warmup
 JogExample.run
 JogExample.save_benchmarks
 JogExample.load_benchmarks
+JogExample.judge
 JogExample.BENCHMARK_DIR
 ```
