@@ -9,6 +9,7 @@ using Pkg
 using UUIDs
 using Dates
 using LibGit2
+using Statistics
 
 export @jog
 

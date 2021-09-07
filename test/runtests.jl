@@ -13,5 +13,6 @@ using PkgJogger
 
     # Run the rest of the unit testing suite
     @safetestset "Smoke Tests" begin include("smoke.jl") end
+    @safetestset "Judging" begin include("judging.jl") end
     @safetestset "CI Workflow" begin include("ci.jl") end
 end

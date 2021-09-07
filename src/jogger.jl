@@ -138,6 +138,7 @@ macro jog(pkg)
             end
 
             """
+                load_benchmarks(filename::String)::Dict
                 load_benchmarks(uuid::String)::Dict
                 load_benchmarks(uuid::UUID)::Dict
 
@@ -145,10 +146,28 @@ macro jog(pkg)
             """
             load_benchmarks(uuid::UUIDs.UUID) = load_benchmarks(string(uuid))
             function load_benchmarks(uuid::AbstractString)
+                # Check if input is a filename
+                isfile(uuid) && return PkgJogger.load_benchmarks(uuid)
+
+                # Check if a valid benchmark uuid
                 path = joinpath(BENCHMARK_DIR, "trial", uuid * ".json.gz")
                 @assert isfile(path) "Missing benchmarking results for $uuid, expected path: $path"
                 PkgJogger.load_benchmarks(path)
             end
+
+            """
+                judge(new, old; metric=Statistics.median, kwargs...)
+
+            Compares benchmarking results from `new` vs `old` for regressions/improvements
+            using `metric` as a basis. Additional `kwargs` are passed to `BenchmarkTools.judge`
+
+            Identical to [`PkgJogger.judge`](@ref), but accepts UUIDs for `new` and `old`
+            """
+            function judge(new, old; kwargs...)
+                PkgJogger.judge(load_benchmarks(new), _get_benchmarks(old); kwargs...)
+            end
+            _get_benchmarks(b::AbstractString) = load_benchmarks(b)
+            _get_benchmarks(b) = PkgJogger._get_benchmarks(b)
         end
     end
 end
