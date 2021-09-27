@@ -52,3 +52,20 @@ function get_uuid(filename)
     splitpath(filename)[end] |> x -> split(x, ".")[1]
 end
 
+"""
+    test_benchmark(target::BenchmarkGroup, ref)
+
+Checks that target and ref are from equivalent benchmarking suite
+"""
+function test_benchmark(target, ref::BenchmarkGroup)
+    @test typeof(target) <: BenchmarkGroup
+    @test isempty(setdiff(keys(target), keys(ref)))
+    map(test_benchmark, target, ref)
+end
+test_benchmark(target, ref) = @test typeof(target) <: typeof(ref)
+function test_benchmark(target, ref::BenchmarkTools.Trial)
+    @test typeof(target) <: BenchmarkTools.Trial
+    @test params(target) == params(ref)
+end
+
+
