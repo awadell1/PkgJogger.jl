@@ -26,8 +26,8 @@ const JOGGER_PKGS = [
     PkgId(UUID("cf7118a7-6976-5b1a-9a39-7adc72f591a4"), "UUIDs"),
 ]
 
-include("jogger.jl")
 include("utils.jl")
+include("jogger.jl")
 include("ci.jl")
 
 end
