@@ -58,7 +58,6 @@ function locate_benchmarks(path, name=String[])
             append!(suite, locate_benchmarks(filename, cur_name))
         end
     end
-    @info suite
     return suite
 end
 locate_benchmarks(pkg::Module) = benchmark_dir(pkg) |> locate_benchmarks
