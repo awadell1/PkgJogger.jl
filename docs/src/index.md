@@ -4,6 +4,10 @@ CurrentModule = PkgJogger
 
 # PkgJogger
 
+[![version](https://juliahub.com/docs/PkgJogger/version.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
+[![Build Status](https://github.com/awadell1/PkgJogger.jl/workflows/CI/badge.svg)](https://github.com/awadell1/PkgJogger.jl/actions)
+[![pkgeval](https://juliahub.com/docs/PkgJogger/pkgeval.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
+
 PkgJogger provides a framework for running suites of
 [BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) benchmarks
 without the boilerplate.

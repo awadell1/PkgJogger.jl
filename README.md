@@ -5,6 +5,9 @@
 [![Build Status](https://github.com/awadell1/PkgJogger.jl/workflows/CI/badge.svg)](https://github.com/awadell1/PkgJogger.jl/actions)
 [![Coverage Status](https://coveralls.io/repos/github/awadell1/PkgJogger.jl/badge.svg?branch=coverage)](https://coveralls.io/github/awadell1/PkgJogger.jl?branch=coverage)
 
+[![version](https://juliahub.com/docs/PkgJogger/version.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
+[![pkgeval](https://juliahub.com/docs/PkgJogger/pkgeval.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
+
 PkgJogger is a benchmarking framework for Julia built on
 [BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) with the
 following features:
