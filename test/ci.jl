@@ -7,13 +7,11 @@ include("utils.jl")
 function run_ci_workflow(pkg_dir)
     # Create temporary default project
     mktempdir() do temp_project
-        # Get a temporary version of PkgJogger
-        temp_version = create_temp_version()
 
         # Construct CI Command
         cmd = Cmd([
             "julia", "--code-coverage=all", "--eval",
-            "using Pkg; Pkg.develop(path=\"$temp_version\"); using PkgJogger; PkgJogger.ci()"
+            "using Pkg; Pkg.develop(path=\"$PKG_JOGGER_PATH\"); using PkgJogger; PkgJogger.ci()"
         ]) |> ignorestatus
 
         # Set Environmental Variables
@@ -35,12 +33,6 @@ function run_ci_workflow(pkg_dir)
             @info read(cmd_stdout, String)
             @info read(cmd_stderr, String)
             error("$cmd exited with $proc.exitcode")
-        end
-
-        # Copy back *.cov files so coverage counts are correct
-        for covfile in glob("**/*.cov", temp_version)
-            dst = joinpath(PKG_JOGGER_PATH, relpath(covfile, temp_version))
-            cp(covfile, dst)
         end
 
         return proc, cmd_stdout, cmd_stderr
@@ -65,8 +57,7 @@ function test_ci_output(proc, cmd_stdout, cmd_stderr)
 end
 
 @testset "PkgJogger.jl" begin
-    temp_project = create_temp_version()
-    proc, cmd_stdout, cmd_stderr = run_ci_workflow(temp_project)
+    proc, cmd_stdout, cmd_stderr = run_ci_workflow(PKG_JOGGER_PATH)
     results_file = test_ci_output(proc, cmd_stdout, cmd_stderr)
     @test all( ("benchmark", "trial") .== splitpath(results_file)[end-2:end-1] )
 end
