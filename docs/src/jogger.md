@@ -1,14 +1,14 @@
 # Generated Jogger Modules
 
 At it's core `PkgJogger` uses meta-programming to generate a Jogger module for
-running a package's benchmarks. For example, calling `@jog` on `PkgJogger` gives
-a jogger named `JogPkgJogger` for running the benchmark suite of `PkgJogger`.
+running a package's benchmarks. For example, calling `@jog` on `Example` gives
+a jogger named `JogExample` for running the benchmark suite of `Example`.
 
-```jldoctest jogger
-julia> using PkgJogger
+```jldoctest
+julia> using PkgJogger, Example
 
-julia> @jog PkgJogger
-JogPkgJogger
+julia> @jog Example
+JogExample
 
 ```
 
