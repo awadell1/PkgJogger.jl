@@ -47,9 +47,8 @@ function run_ci_workflow(pkg_dir)
         @test isfile(results_file)
 
         # Check that results are in the right place
-        test_subfile(temp_project, results_file)
         trial_dir = joinpath(PkgJogger.benchmark_dir(temp_project), "trial")
-        test_subfile(trial_dir, results_file)
+        @test isfile(joinpath(trial_dir, splitpath(results_file)[end]))
 
         # Check that results file is valid
         results = PkgJogger.load_benchmarks(results_file)

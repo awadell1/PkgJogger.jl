@@ -1,52 +1,53 @@
 using Test
 using PkgJogger
 using UUIDs
+using Example
 import BenchmarkTools
 
 include("utils.jl")
 
 @testset "canonical" begin
-    @jog PkgJogger
-    @test @isdefined JogPkgJogger
+    @jog Example
+    @test @isdefined JogExample
 
     # Run Benchmarks
-    r = JogPkgJogger.benchmark()
+    r = JogExample.benchmark()
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
 
     # Warmup
-    @test_nowarn JogPkgJogger.warmup()
+    @test_nowarn JogExample.warmup()
 
     # Running
-    r = JogPkgJogger.run()
+    r = JogExample.run()
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
 
     # BENCHMARK_DIR
-    @test JogPkgJogger.BENCHMARK_DIR == PkgJogger.benchmark_dir(PkgJogger)
+    @test JogExample.BENCHMARK_DIR == PkgJogger.benchmark_dir(Example)
 
     # Saving and Loading
-    file = JogPkgJogger.save_benchmarks(r)
+    file = JogExample.save_benchmarks(r)
     @test isfile(file)
     r2 = PkgJogger.load_benchmarks(file)
     test_loaded_results(r2)
     @test r == r2["benchmarks"]
 
-    # Load with JogPkgJogger
+    # Load with JogExample
     @testset "Jogger's load_benchmarks" begin
         uuid = get_uuid(file)
-        r3 = JogPkgJogger.load_benchmarks(uuid)
-        r4 = JogPkgJogger.load_benchmarks(UUID(uuid))
+        r3 = JogExample.load_benchmarks(uuid)
+        r4 = JogExample.load_benchmarks(UUID(uuid))
         @test r3 == r4
         @test r3["benchmarks"] == r
         @test r4["benchmarks"] == r
         @test r2 == r3 == r4
 
         # Check that we error for invalid uuids
-        @test_throws AssertionError JogPkgJogger.load_benchmarks("not-a-uuid")
-        @test_throws AssertionError JogPkgJogger.load_benchmarks(UUIDs.uuid4())
+        @test_throws AssertionError JogExample.load_benchmarks("not-a-uuid")
+        @test_throws AssertionError JogExample.load_benchmarks(UUIDs.uuid4())
     end
 
     # Test Judging
-    @test_nowarn JogPkgJogger.judge(file, file)
+    @test_nowarn JogExample.judge(file, file)
 
     # If this is a git repo, there should be a git entry
     if isdir(joinpath(PKG_JOGGER_PATH, ".git"))
@@ -54,7 +55,7 @@ include("utils.jl")
     end
 
     # Test results location
-    trial_dir = joinpath(JogPkgJogger.BENCHMARK_DIR, "trial")
+    trial_dir = joinpath(JogExample.BENCHMARK_DIR, "trial")
     test_subfile(trial_dir, file)
 
     # Clean up file and delete benchmark folder in test
@@ -63,6 +64,6 @@ include("utils.jl")
 end
 
 @testset "Jogger Methods" begin
-    @jog PkgJogger
-    @test @isdefined JogPkgJogger
+    @jog Example
+    @test @isdefined JogExample
 end
