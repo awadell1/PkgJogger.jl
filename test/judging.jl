@@ -1,13 +1,9 @@
 using PkgJogger
 using BenchmarkTools
-
-include("utils.jl")
-
-# Add Example
-using Pkg
-Pkg.develop(path="Example.jl/")
 using Example
 @jog Example
+
+include("utils.jl")
 
 function gen_example()
     results = JogExample.benchmark()

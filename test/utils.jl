@@ -20,33 +20,6 @@ function test_loaded_results(r::Dict)
 end
 
 """
-    create_temp_version()
-
-Copy all tracked files to a temporary directory that can be developed
-Used to replicate Pkg.add against the current version
-"""
-function create_temp_version()
-    # Check if under version control
-    if isdir(joinpath(PKG_JOGGER_PATH, ".git"))
-        # Only Copy git tracked files
-        files = readlines(Cmd(`git ls-files`, dir=PKG_JOGGER_PATH))
-    else
-        # Copy all files
-        files = glob("**/*")
-    end
-
-    # Copy Package Files to temporary directory
-    dir = mktempdir(; prefix="jl_pkgjogger_", cleanup=true)
-    for file in readlines(Cmd(`git ls-files`, dir=PKG_JOGGER_PATH))
-        src = joinpath(PKG_JOGGER_PATH, file)
-        dst = joinpath(dir, file)
-        mkpath(dirname(dst))
-        cp(src, dst; force=true)
-    end
-    return dir
-end
-
-"""
     test_subfile(parent, child)
 
 Test that `child` is a child of `parent`

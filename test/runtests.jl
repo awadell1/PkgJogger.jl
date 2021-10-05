@@ -11,6 +11,13 @@ using PkgJogger
         end
     end
 
+    # Load Example
+    example_path = joinpath(@__DIR__, "Example.jl")
+    if example_path ∉ LOAD_PATH
+        push!(LOAD_PATH, example_path)
+    end
+    using Example
+
     # Run the rest of the unit testing suite
     @safetestset "Smoke Tests" begin include("smoke.jl") end
     @safetestset "Judging" begin include("judging.jl") end
