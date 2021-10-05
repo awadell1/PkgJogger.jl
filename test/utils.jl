@@ -37,7 +37,7 @@ function create_temp_version()
 
     # Copy Package Files to temporary directory
     dir = mktempdir(; prefix="jl_pkgjogger_", cleanup=true)
-    for file in readlines(Cmd(`git ls-files`, dir=PKG_JOGGER_PATH))
+    for file in files
         src = joinpath(PKG_JOGGER_PATH, file)
         dst = joinpath(dir, file)
         mkpath(dirname(dst))
