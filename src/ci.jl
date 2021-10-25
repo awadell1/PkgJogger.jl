@@ -28,10 +28,9 @@ function ci()
     # Look for a benchmark project, and add to LOAD_PATH if it exists
     # TODO: Use Sub-project https://github.com/JuliaLang/Pkg.jl/issues/1233
     bench_dir = benchmark_dir(pkg)
-    benchmark_project = Base.env_project_file(bench_dir)
     load_path = String[]
-    if isfile(benchmark_project)
-        @info "Found benchmark project: $benchmark_project"
+    if Base.env_project_file(bench_dir) != false
+        @info "Found benchmarking environment at $bench_dir"
         instantiate(bench_dir)
         push!(load_path, bench_dir)
     end
