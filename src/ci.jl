@@ -25,20 +25,10 @@ function ci()
         path=dirname(project),
     )
 
-    # Look for a benchmark project, and add to LOAD_PATH if it exists
-    # TODO: Use Sub-project https://github.com/JuliaLang/Pkg.jl/issues/1233
-    bench_dir = benchmark_dir(pkg)
-    load_path = String[]
-    if Base.env_project_file(bench_dir) != false
-        @info "Found benchmarking environment at $bench_dir"
-        instantiate(bench_dir)
-        push!(load_path, bench_dir)
-    end
-
     # Run in sandbox
     pkgname = Symbol(pkg.name)
     jogger = Symbol(:Jog, pkg.name)
-    sandbox(pkg, load_path) do
+    sandbox(pkg) do
         @eval Main begin
             using PkgJogger
             using $pkgname
@@ -50,7 +40,7 @@ function ci()
     end
 end
 
-function sandbox(f, pkg, load_path)
+function sandbox(f, pkg)
     # Save current project and load path
     current_project = Pkg.project()
     current_load_path = Base.LOAD_PATH
@@ -61,25 +51,34 @@ function sandbox(f, pkg, load_path)
         uuid = JOGGER_PKGS[1].uuid,
     )
 
-    # Build temporary environment
-    # Add the project being benchmarked, then PkgJogger restricted to existing
-    # manifest. Ie. The benchmarked projects drives manifest resolution, not PkgJogger
-    Pkg.activate(;temp=true)
-    Pkg.develop(pkg; io=devnull)
-    Pkg.add(self; preserve=PRESERVE_ALL, io=devnull)
-    Pkg.instantiate(; io=devnull)
+    # Locate benchmark project
+    # TODO: Use Sub-project https://github.com/JuliaLang/Pkg.jl/issues/1233
+    bench_dir = benchmark_dir(pkg)
+    bench_project = joinpath(bench_dir, Base.current_project(bench_dir))
 
-    # Update LOAD_PATH
-    # Only load code from: Temp Environment or benchmark/Project.toml
-    empty!(Base.LOAD_PATH)
-    append!(Base.LOAD_PATH, vcat(["@"], load_path))
+    # Create a temporary environment
+    mktempdir() do temp_env
+        # Copy benchmarking project over iff it exists
+        if isfile(bench_project)
+            cp(bench_project, joinpath(temp_env, basename(bench_project)))
+        end
 
-    # Report current status
-    Pkg.status(;mode=PKGMODE_MANIFEST)
-    @debug "LOAD_PATH: $(Base.LOAD_PATH)"
+        # Build up benchmarked environment
+        Pkg.activate(temp_env; io=devnull)
+        Pkg.develop(pkg; preserve=PRESERVE_NONE, io=devnull)
+        Pkg.add(self; preserve=PRESERVE_TIERED, io=devnull)
+        Pkg.instantiate(; io=devnull)
 
-    # Run function
-    f()
+        # Strip LOAD_PATH to the temporary environment
+        empty!(Base.LOAD_PATH)
+        push!(Base.LOAD_PATH, "@")
+
+        # Report current status
+        Pkg.status(;mode=PKGMODE_MANIFEST)
+
+        # Run function
+        f()
+    end
 
     # Restore environment and load path
     empty!(Base.LOAD_PATH)
