@@ -34,15 +34,24 @@ jobs:
 
 PkgJogger will create a temporary environment with the following:
 
-1) Instantiate the current package
-2) If found, instantiate `benchmark/Project.toml` and add to the `LOAD_PATH`
-3) Add PkgJogger while preserving the resolved manifest
-4) Remove `@stdlib` and `@v#.#` from the `LOAD_PATH`
+1) Activate a temporary Julia environment for benchmarking.
+    - If a Julia project file exists in `benchmark/`, it will be copied to the
+      temporary environment. Manifest files are currently ignored.
+    - Otherwise an empty environment is created.
+2) Add the current project (via `Pkg.develop`) to the benchmarking environment
+   and resolve dependencies using
+   [`PRESEVE_NONE`](https://pkgdocs.julialang.org/v1/api/#Pkg.add).
+3) Add `PkgJogger` and resolve dependencies using
+   [`PRESERVE_TIERED`](https://pkgdocs.julialang.org/v1/api/#Pkg.add).
+4) Strip the
+   [`LOAD_PATH`](https://docs.julialang.org/en/v1/base/constants/#Base.LOAD_PATH)
+   to the benchmarking environment. The prior `LOAD_PATH` is restored after benchmarking.
 
 This results in an isolated environment with the following properties:
 
-- PkgJogger does not dictate package resolution; the benchmarked package does
+- Minimizes PkgJogger's impact on dependency resolution.
 - Packages not explicitly added by `Project.toml` or `benchmark/Project.toml`
+  are not available in the benchmarking environment.
 
 ## Reference
 
