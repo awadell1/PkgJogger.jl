@@ -8,28 +8,71 @@
 [![version](https://juliahub.com/docs/PkgJogger/version.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
 [![pkgeval](https://juliahub.com/docs/PkgJogger/pkgeval.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
 
-PkgJogger is a benchmarking framework for Julia built on
-[BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) with the
-following features:
+PkgJogger provides a framework for running suites of
+[BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) benchmarks
+without the boilerplate.
 
-- Just write benchmarks files:`benchmark/bench_*.jl`
+## Just write benchmarks
 
-    PkgJogger will wrap each benchmark file into a separate module, and return a
-    top-level module with helper methods for running the suite
+Create a `benchmark/bench_*.jl` file, define a
+[BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) `suite` and
+go!
 
-    Individual benchmark files only need to define a `suite::BenchmarkGroup`
+```julia
+using BenchmarkTools
+using AwesomePkg
+suite = BenchmarkGroup()
+suite["fast"] = @benchmarkable fast_code()
+```
 
-- Revise, benchmark, and revise again
+PkgJogger will wrap each `benchmark/bench_*.jl` in a module and bundle them into `JogAwesomePkg`
 
-    PkgJogger uses [Revise.jl](https://github.com/timholy/Revise.jl) to track
-    changes to benchmarking files and updates the suite as you edit. No more
-    waiting for benchmarks to precompile!
+```julia
+using AwesomePkg
+using PkgJogger
 
-- Continuous Benchmarking Baked In!
+# Creates the JogAwesomePkg module
+@jog AwesomePkg
 
-    Setup and isolated environment, run benchmarks and save results with a
-    one-liner:
+# Warmup, tune, and run all of AwesomePkg's benchmarks
+JogAwesomePkg.benchmark()
+```
 
-    ```shell
-    julia -e 'using Pkg; Pkg.add("PkgJogger"); using PkgJogger; PkgJogger.ci()'
-    ```
+## Benchmark, Revise, and Benchmark Again!
+
+PkgJogger uses [Revise.jl](https://github.com/timholy/Revise.jl) to track
+changes to your `benchmark/bench_*.jl` files and reload your suite as you edit.
+No more waiting for benchmarks to precompile!
+
+Tracked Changes:
+
+- Changing your benchmarked function
+- Changing benchmarking parameters (i.e. `seconds` or `samples`)
+- Adding new benchmarks
+
+Current Limitations:
+
+- New benchmark files are not tracked
+- Deleted benchmarks will stick around
+- Renamed benchmarks will create a new benchmark and retain the old name
+
+To get around the above, run `@jog PkgName` to get an updated jogger.
+
+## Continuous Benchmarking Baked In!
+
+Install PkgJogger, run benchmarks, and save results to a `*.json.gz` with a
+one-line command.
+
+```shell
+julia -e 'using Pkg; Pkg.add("PkgJogger"); using PkgJogger; PkgJogger.ci()'
+```
+
+What gets done:
+
+- Constructs a temporary
+  [benchmarking environment](https://awadell1.github.io/PkgJogger.jl/stable/ci/#Isolated-Benchmarking-Environment)
+  from `Project.toml` and `benchmark/Project.toml`.
+- Creates a [jogger](https://awadell1.github.io/PkgJogger.jl/stable/jogger/)
+  to run the package's benchmarks.
+- Warmup, tune and run all benchmarks.
+- Save Benchmarking results and more to a compressed `*.json.gz` file.

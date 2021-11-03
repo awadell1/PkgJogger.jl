@@ -9,6 +9,18 @@ using Example
 
 DocMeta.setdocmeta!(PkgJogger, :DocTestSetup, :(using PkgJogger); recursive=true)
 
+# Generate index.md from README.md
+index_md = joinpath(@__DIR__, "src", "index.md")
+readme_md = joinpath(@__DIR__, "..", "README.md")
+open(index_md, "w") do io
+    write(io, """
+    ```@meta
+    EditURL = "$readme_md"
+    ```
+    """)
+    write(io, read(readme_md, String))
+end
+
 makedocs(;
     modules=[PkgJogger, JogExample],
     authors="Alexius Wadell <awadell@gmail.com> and contributors",
@@ -34,3 +46,6 @@ deploydocs(;
     repo="github.com/awadell1/PkgJogger.jl",
     devbranch="main",
 )
+
+# Remove index.md
+rm(joinpath(@__DIR__, "src", "index.md"))
