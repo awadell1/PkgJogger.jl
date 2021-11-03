@@ -86,14 +86,6 @@ function sandbox(f, pkg)
     Pkg.activate(current_project.path)
 end
 
-function instantiate(project_file)
-    @info "Instantiating: $project_file"
-    cur_project = Pkg.project().path
-    Pkg.activate(project_file; io=devnull)
-    Pkg.instantiate(; io=devnull)
-    Pkg.activate(cur_project; io=devnull)
-end
-
 """
     save_benchmarks(filename, results::BenchmarkGroup)
 
