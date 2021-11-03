@@ -9,8 +9,8 @@ These methods build on
 - Additional information such as:
   - Julia Version, Commit and Build Date
   - System Information (Essentially everything in `Sys`)
-  - Timestamp of when the results were saved
-  - Git Information if saved in a Git Repository
+  - Timestamp when the results get saved
+  - Git Information, if run from a Git Repository
 
 Overall the resulting files are ~10x smaller, despite capturing additional information.
 

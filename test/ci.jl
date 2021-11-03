@@ -10,15 +10,17 @@ function run_ci_workflow(pkg_dir)
         cp(pkg_dir, temp_project; force=true)
 
         # Construct CI Command
+        pkgjogger_path = escape_string(PKG_JOGGER_PATH)
         cmd = Cmd([
             "julia", "--code-coverage=all", "--eval",
-            "using Pkg; Pkg.develop(path=\"$PKG_JOGGER_PATH\"); using PkgJogger; PkgJogger.ci()"
+            "using Pkg; Pkg.develop(path=\"$pkgjogger_path\"); using PkgJogger; PkgJogger.ci()"
         ]) |> ignorestatus
 
         # Set Environmental Variables
+        sep = Sys.iswindows() ? ";" : ":"
         cmd = setenv(cmd,
             "JULIA_PROJECT" => temp_project,    # Use the temporary project
-            "JULIA_LOAD_PATH" => "@:@stdlib",   # Enable stdlib but ignore user projects
+            "JULIA_LOAD_PATH" => join(["@", "@stdlib"], sep),   # Enable stdlib but ignore user projects
             "PATH" => Sys.BINDIR,               # Add Julia to the PATH
         )
 
