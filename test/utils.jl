@@ -1,6 +1,9 @@
 using BenchmarkTools
 using Test
 
+# Reduce Benchmarking Duration for faster testing
+BenchmarkTools.DEFAULT_PARAMETERS.seconds = 0.1
+
 const PKG_JOGGER_PATH = joinpath(@__DIR__, "..") |> abspath
 
 function test_loaded_results(r::Dict)
