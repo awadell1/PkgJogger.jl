@@ -27,14 +27,13 @@ function ci()
 
     # Run in sandbox
     pkgname = Symbol(pkg.name)
-    jogger = Symbol(:Jog, pkg.name)
     sandbox(pkg) do
         @eval Main begin
             using PkgJogger
             using $pkgname
             jogger = @jog $pkgname
-            result = $jogger.benchmark()
-            filename = $jogger.save_benchmarks(result)
+            result = jogger.benchmark()
+            filename = jogger.save_benchmarks(result)
             @info "Saved benchmarks to $filename"
         end
     end
