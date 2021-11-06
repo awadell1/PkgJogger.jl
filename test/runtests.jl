@@ -16,10 +16,10 @@ using PkgJogger
     if example_path ∉ LOAD_PATH
         push!(LOAD_PATH, example_path)
     end
-    using Example
 
     # Run the rest of the unit testing suite
     @safetestset "Smoke Tests" begin include("smoke.jl") end
     @safetestset "Judging" begin include("judging.jl") end
     @safetestset "CI Workflow" begin include("ci.jl") end
+    @safetestset "Locate Benchmarks" begin include("locate_benchmarks.jl") end
 end

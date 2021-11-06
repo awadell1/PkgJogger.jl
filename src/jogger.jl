@@ -46,10 +46,11 @@ macro jog(pkg)
 
     # Generate modules
     suite_modules = Expr[]
-    benchmarks = Symbol[]
-    for (name, file) in locate_benchmarks(bench_dir)
-        push!(suite_modules, build_module(name, file))
-        push!(benchmarks, Symbol(name))
+    suite_expressions = Expr[]
+    for s in locate_benchmarks(bench_dir)
+        suite_expr, suite_module = build_module(s)
+        push!(suite_modules, suite_module)
+        push!(suite_expressions, suite_expr)
     end
 
     # Flatten out modules into a Vector{Expr}
@@ -83,9 +84,7 @@ macro jog(pkg)
             """
             function suite()
                 suite = BenchmarkTools.BenchmarkGroup()
-                for (n, m) in zip([$(string.(benchmarks)...)], [$(benchmarks...)])
-                    suite[n] = m.suite
-                end
+                $(suite_expressions...)
                 suite
             end
 
@@ -173,17 +172,24 @@ macro jog(pkg)
 end
 
 """
-    build_module(name, file)
+    build_module(s::BenchModule)
 
-Construct a module wrapping the BenchmarkGroup defined by `file` with `name`
+Construct a module wrapping the BenchmarkGroup defined by `s::BenchModule`
 """
-function build_module(name, file)
-    modname = Symbol(name)
-    exp = quote
+function build_module(s::BenchModule)
+    modname = gensym(s.name[end])
+    module_expr = quote
         module $modname
             __revise_mode__ = :eval
-            include($file)
+            include($(s.filename))
         end
-        Revise.track($modname, $file)
+        Revise.track($modname, $(s.filename))
     end
+
+    # Build Expression for accessing suite
+    suite_expr = quote
+        suite[$(s.name)] = $(modname).suite
+    end
+
+    return suite_expr, module_expr
 end

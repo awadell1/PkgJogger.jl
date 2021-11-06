@@ -1,3 +1,8 @@
+struct BenchModule
+    filename::String
+    name::Vector{String}
+end
+
 """
     benchmark_dir(pkg::Module)
     benchmark_dir(pkg::PackageSpec)
@@ -32,22 +37,30 @@ end
 
 """
     locate_benchmarks(pkg::Module)
-    locate_benchmarks(bench_dir::String)
+    locate_benchmarks(path::String, name=String[])
 
-Returns a dict of `name => filename` of identified benchmark files
+Returns a list of `BenchModule` for identified benchmark files
 """
-function locate_benchmarks(dir)
-    suite = Dict{String, String}()
-    for file in readdir(dir; join=true)
-        m = match(r"bench_(.*?)\.jl$", file)
-        if m !== nothing
-            suite[m.captures[1]] = file
+function locate_benchmarks(path, name=String[])
+    suite = BenchModule[]
+    for file in readdir(path)
+        # Check that path is named 'bench_*'
+        !startswith(file, "bench_") && continue
+
+        # Check if file is a valid target to add
+        cur_name = [name..., file]
+        filename = joinpath(path, file)
+        if isfile(filename) && endswith(file, ".jl")
+            # File is a julia file named bench_*.jl
+            push!(suite, BenchModule(filename, cur_name))
+        elseif isdir(filename)
+            # Subdirectory named bench_* -> Look for more modules
+            append!(suite, locate_benchmarks(filename, cur_name))
         end
     end
-    suite
+    return suite
 end
 locate_benchmarks(pkg::Module) = benchmark_dir(pkg) |> locate_benchmarks
-
 
 """
     judge(new, old; metric=Statistics.median, kwargs...)

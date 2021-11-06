@@ -66,6 +66,6 @@ end
     results = run_ci_workflow(project)
 
     # Check timer results are decent (sleep isn't very accurate)
-    isapprox((time∘minimum)(results["benchmarks"][["timer", "1ms"]]), 1e6; atol=3e6)
-    isapprox((time∘minimum)(results["benchmarks"][["timer", "2ms"]]), 2e6; atol=3e6)
+    isapprox((time∘minimum)(results["benchmarks"][["bench_timer.jl", "1ms"]]), 1e6; atol=3e6)
+    isapprox((time∘minimum)(results["benchmarks"][["bench_timer.jl", "2ms"]]), 2e6; atol=3e6)
 end
