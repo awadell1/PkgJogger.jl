@@ -46,13 +46,6 @@ include("utils.jl")
         @test_throws AssertionError JogExample.load_benchmarks(UUIDs.uuid4())
     end
 
-    # Test Retuning
-    @testset "Reusing tune! results" begin
-        test_benchmark(JogPkgJogger.benchmark(ref = r), r)
-        test_benchmark(JogPkgJogger.benchmark(ref = get_uuid(file)), r)
-        test_benchmark(JogPkgJogger.benchmark(ref = file), r)
-    end
-
     # Test Judging
     @test_nowarn JogExample.judge(file, file)
 

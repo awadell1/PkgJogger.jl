@@ -94,37 +94,3 @@ end
 _get_benchmarks(b::BenchmarkTools.BenchmarkGroup) = b
 _get_benchmarks(b::Dict) =  b["benchmarks"]::BenchmarkTools.BenchmarkGroup
 _get_benchmarks(filename::String) = load_benchmarks(filename) |> _get_benchmarks
-
-"""
-    tune!(group::BenchmarkGroup, ref::BenchmarkGroup; verbose::Bool=false)
-
-Tunes a BenchmarkGroup, only tunning benchmarks not found in `ref`, otherwise reuse tuning
-results from the reference BenchmarkGroup, by copying over all benchmark parameters from `ref`.
-
-This can reduce benchmarking runtimes significantly by only tuning new benchmarks. But does
-ignore the following:
-    - Changes to benchmarking parameters (ie. memory_tolerance) between `group` and `ref`
-    - Significant changes in performance, such that re-tunning is warranted
-    - Other changes (ie. changing machines), such that re-tunning is warranted?
-"""
-function tune!(group::BenchmarkTools.BenchmarkGroup, ref::BenchmarkTools.BenchmarkGroup; kwargs...)
-    ids = keys(group) |> collect
-    ref_ids = keys(ref) |> collect
-
-    # Tune new benchmarks
-    for id in setdiff(ids, ref_ids)
-        tune!(group[id]; kwargs...)
-    end
-
-    # Reuse tunning from prior benchmarks
-    for id in intersect(ids, ref_ids)
-        tune!(group[id], ref[id]; kwargs...)
-    end
-
-    return group
-end
-tune!(b::BenchmarkTools.Benchmark, ref; kwargs...) = b.params = copy(ref.params)
-tune!(group::BenchmarkTools.BenchmarkGroup, ::Nothing; kwargs...) = tune!(group; kwargs...)
-tune!(group::BenchmarkTools.BenchmarkGroup; kwargs...) = BenchmarkTools.tune!(group; kwargs...)
-tune!(group::BenchmarkTools.BenchmarkGroup, ref::Dict; kwargs...) = tune!(group, ref["benchmarks"]; kwargs...)
-tune!(group::BenchmarkTools.BenchmarkGroup, ref; kwargs...) = tune!(group, load_benchmarks(ref); kwargs...)
