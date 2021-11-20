@@ -10,8 +10,9 @@ using UUIDs
 using Dates
 using LibGit2
 using Statistics
+using Test
 
-export @jog
+export @jog, @test_benchmarks
 
 import Base: PkgId
 """

@@ -94,3 +94,38 @@ end
 _get_benchmarks(b::BenchmarkTools.BenchmarkGroup) = b
 _get_benchmarks(b::Dict) =  b["benchmarks"]::BenchmarkTools.BenchmarkGroup
 _get_benchmarks(filename::String) = load_benchmarks(filename) |> _get_benchmarks
+
+"""
+    test_benchmarks(s::BenchmarkGroup)
+
+Runs a `@testsuite` for each benchmark in `s` once (One evaluation of the benchmark's target)
+Sub-benchmark groups / benchmarks are recursively wrapped in `@testsuites` for easy
+identification.
+
+benchmarks are marked as "passing" if they don't error during evaluation.
+"""
+test_benchmarks(s::BenchmarkTools.BenchmarkGroup) = test_benchmarks("Testing Benchmarks", s)
+function test_benchmarks(name, s::BenchmarkTools.BenchmarkGroup)
+    @testset "$name" for (name, bench) in s
+        test_benchmarks(name, bench)
+    end
+end
+function test_benchmarks(name, b::BenchmarkTools.Benchmark)
+    @testset "$name" begin
+        run(b; verbose=false, samples=1, evals=1, gctrial=false, gcsample=false)
+        @test true
+    end
+end
+
+"""
+    @test_benchmarks PkgName
+
+Collects all benchmarks for `PkgName`, and test that they don't error when ran once.
+"""
+macro test_benchmarks(pkg)
+    quote
+        jogger = @jog $pkg
+        s = jogger.suite()
+        PkgJogger.test_benchmarks(s)
+    end
+end
