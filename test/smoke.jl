@@ -61,6 +61,12 @@ include("utils.jl")
     # Clean up file and delete benchmark folder in test
     rm(file)
     rm(joinpath(@__DIR__, "benchmark"); force=true, recursive=true)
+
+    # Test @test_benchmarks
+    @testset "test_benchmarks" begin
+        ts = @test_benchmarks Example
+        @test ts isa Test.AbstractTestSet
+    end
 end
 
 @testset "Jogger Methods" begin
