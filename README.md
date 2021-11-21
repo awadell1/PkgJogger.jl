@@ -76,3 +76,8 @@ What gets done:
   to run the package's benchmarks.
 - Warmup, tune and run all benchmarks.
 - Save Benchmarking results and more to a compressed `*.json.gz` file.
+
+Or for a more lightweight option, use
+[`@test_bechmarks`](https://awadell1.github.io/PkgJogger.jl/stable/ci/#Testing-Benchmarks)
+to run each benchmark once (No Warmup, tuning, etc.), as a smoke test
+against benchmarking regressions.
