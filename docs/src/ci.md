@@ -53,6 +53,20 @@ This results in an isolated environment with the following properties:
 - Packages not explicitly added by `Project.toml` or `benchmark/Project.toml`
   are not available in the benchmarking environment.
 
+## Testing Benchmarks
+
+Often benchmarking suites are too large to be included as part of unit testing.
+Or [`PkgJogger.ci`](@ref) may be too costly to run with each push/pr/etc. however,
+without continuous testing, regressions are inevitable if a Package's API changes
+without corresponding updates to the benchmarking suite.
+
+[`@test_benchmarks`](@ref) provides a lightweight smoke test that can be included
+in regular unit testing, without excessively inflating the test suite
+
+```@docs
+PkgJogger.@test_benchmarks
+```
+
 ## Reference
 
 ```@docs

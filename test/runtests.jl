@@ -22,4 +22,9 @@ using PkgJogger
     @safetestset "Judging" begin include("judging.jl") end
     @safetestset "CI Workflow" begin include("ci.jl") end
     @safetestset "Locate Benchmarks" begin include("locate_benchmarks.jl") end
+    @safetestset "Doc Tests" begin
+        using PkgJogger
+        using Documenter
+        doctest(PkgJogger)
+    end
 end

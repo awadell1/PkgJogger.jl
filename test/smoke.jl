@@ -65,7 +65,8 @@ include("utils.jl")
     # Test @test_benchmarks
     @testset "test_benchmarks" begin
         ts = @test_benchmarks Example
-        @test ts isa Test.AbstractTestSet
+        @test ts isa Vector
+        @test all(map(x -> x isa Test.AbstractTestSet, ts))
     end
 end
 
