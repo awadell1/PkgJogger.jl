@@ -6,7 +6,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/awadell1/PkgJogger.jl/badge.svg?branch=coverage)](https://coveralls.io/github/awadell1/PkgJogger.jl?branch=coverage)
 
 [![version](https://juliahub.com/docs/PkgJogger/version.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
-[![pkgeval](https://juliahub.com/docs/PkgJogger/pkgeval.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
+[![pkgeval](https://juliahub.com/docs/PkgJogger/pkgeval.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
 
 PkgJogger provides a framework for running suites of
 [BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) benchmarks
