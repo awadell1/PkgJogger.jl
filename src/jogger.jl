@@ -89,15 +89,23 @@ macro jog(pkg)
             end
 
             """
-                benchmark(; verbose = false)
+                benchmark(; verbose = false, save = false)
 
-            Warmup, tune and run the benchmarking suite for $($pkg)
+            Warmup, tune and run the benchmarking suite for $($pkg).
+
+            If `save = true`, will save the results using [`$($modname).save_benchmarks`](@ref)
+            and display the filename using `@info`.
             """
-            function benchmark(; verbose = false)
+            function benchmark(; verbose = false, save = false)
                 s = suite()
                 BenchmarkTools.warmup(s; verbose)
                 BenchmarkTools.tune!(s; verbose = verbose)
-                BenchmarkTools.run(s; verbose = verbose)
+                results = BenchmarkTools.run(s; verbose = verbose)
+                if save
+                    filename = save_benchmarks(results)
+                    @info "Saved results to $filename"
+                end
+                return results
             end
 
             """
