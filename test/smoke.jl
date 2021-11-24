@@ -1,4 +1,6 @@
 using Test
+using Test: TestLogger
+using Logging: with_logger
 using PkgJogger
 using UUIDs
 using Example
@@ -73,4 +75,23 @@ end
 @testset "Jogger Methods" begin
     @jog Example
     @test @isdefined JogExample
+end
+
+@testset "benchmark and save" begin
+    @jog Example
+    @test @isdefined JogExample
+
+    logger = TestLogger()
+    with_logger(logger) do
+        JogExample.benchmark(save = true)
+    end
+
+    # Check that the filename is logged
+    @test length(logger.logs) == 1
+    @test startswith(logger.logs[1].message, "Saved results to ")
+
+    # Check that the results are saved
+    filename = match(r"\S*$", logger.logs[1].message).match
+    r = PkgJogger.load_benchmarks(filename)
+    test_loaded_results(r)
 end
