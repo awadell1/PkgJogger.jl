@@ -72,11 +72,6 @@ include("utils.jl")
     end
 end
 
-@testset "Jogger Methods" begin
-    @jog Example
-    @test @isdefined JogExample
-end
-
 @testset "benchmark and save" begin
     @jog Example
     @test @isdefined JogExample
