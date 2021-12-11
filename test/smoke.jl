@@ -70,6 +70,9 @@ include("utils.jl")
         @test ts isa Vector
         @test all(map(x -> x isa Test.AbstractTestSet, ts))
     end
+
+    # No Benchmarks
+    @test_throws LoadError @eval(@jog PkgJogger)
 end
 
 @testset "benchmark and save" begin
