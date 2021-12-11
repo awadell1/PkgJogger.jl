@@ -30,6 +30,11 @@ results = JogAwesomePkg.benchmark()
 
 # Saves results to BENCH_DIR/trial/UUID.json.gz and returns the filename used
 JogAwesomePkg.save_benchmarks(results)
+
+# Or run and save the benchmarks in a single step, the filename saved to
+# will be reported in an @info message
+JogAwesomePkg.benchmark(; save = true)
+
 ```
 
 See also: [`JogExample.save_benchmarks`](@ref)
