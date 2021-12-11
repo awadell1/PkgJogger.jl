@@ -91,18 +91,27 @@ macro jog(pkg)
                 suite
             end
 
+            # Dispatch calls to tune! here so we can use the jogger variant of load_benchmarks
+            __tune!(group::BenchmarkTools.BenchmarkGroup, ref::BenchmarkTools.BenchmarkGroup; kwargs...) = PkgJogger.tune!(group, ref; kwargs...)
+            __tune!(group::BenchmarkTools.BenchmarkGroup, ref; kwargs...) = PkgJogger.tune!(group, load_benchmarks(ref); kwargs...)
+            __tune!(group::BenchmarkTools.BenchmarkGroup, ::Nothing; kwargs...) = BenchmarkTools.tune!(group; kwargs...)
+
             """
-                benchmark(; verbose = false, save = false)
+                benchmark(; verbose = false, save = false, ref = nothing)
 
             Warmup, tune and run the benchmarking suite for $($pkg).
 
             If `save = true`, will save the results using [`$($modname).save_benchmarks`](@ref)
             and display the filename using `@info`.
+
+            To reuse prior tuning results set `ref` to a BenchmarkGroup or suitable identifier
+            for [`$($modname).load_benchmarks`](@ref). See [`PkgJogger.tune!`](@ref) for
+            more information about re-using tuning results.
             """
-            function benchmark(; verbose = false, save = false)
+            function benchmark(; verbose = false, save = false, ref = nothing)
                 s = suite()
                 BenchmarkTools.warmup(s; verbose)
-                BenchmarkTools.tune!(s; verbose = verbose)
+                __tune!(s, ref; verbose = verbose)
                 results = BenchmarkTools.run(s; verbose = verbose)
                 if save
                     filename = save_benchmarks(results)
