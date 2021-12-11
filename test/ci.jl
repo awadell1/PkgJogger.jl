@@ -11,15 +11,24 @@ function run_ci_workflow(pkg_dir)
 
         # Construct CI Command
         pkgjogger_path = escape_string(PKG_JOGGER_PATH)
-        cmd = Cmd([
-            "julia", "--code-coverage=all", "--eval",
-            "using Pkg; Pkg.develop(path=\"$pkgjogger_path\"); using PkgJogger; PkgJogger.ci()"
-        ]) |> ignorestatus
+        cli_script = """
+            using Pkg
+            Pkg.activate(temp=true)
+            Pkg.develop(path=\"$pkgjogger_path\")
+            using PkgJogger
+            PkgJogger.ci()
+        """
+        cmd = ignorestatus(Cmd([
+            "julia",
+            "--startup-file=no",
+            "--code-coverage=all",
+            "--eval",
+            cli_script,
+        ]))
 
         # Set Environmental Variables
         sep = Sys.iswindows() ? ";" : ":"
         cmd = setenv(cmd,
-            "JULIA_PROJECT" => temp_project,    # Use the temporary project
             "JULIA_LOAD_PATH" => join(["@", "@stdlib"], sep),   # Enable stdlib but ignore user projects
             "PATH" => Sys.BINDIR,               # Add Julia to the PATH
         )
