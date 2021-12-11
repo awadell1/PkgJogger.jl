@@ -36,6 +36,9 @@ macro jog(pkg)
 
     # Locate benchmark folder
     bench_dir = benchmark_dir(pkg)
+    if !isdir(bench_dir)
+        error("No benchmark directory found for $pkg. Expected: $bench_dir")
+    end
 
     # Generate Using Statements
     using_statements = Expr[]
