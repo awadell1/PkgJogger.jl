@@ -18,13 +18,13 @@ function run_ci_workflow(pkg_dir)
             using PkgJogger
             PkgJogger.ci()
         """
-        cmd = ignorestatus(Cmd([
+        cmd = ignorestatus(Cmd(Vector{String}(filter(!isnothing, [
             "julia",
             "--startup-file=no",
-            "--code-coverage=all",
+            Base.JLOptions().code_coverage > 0 ? "--code-coverage=all" : nothing,
             "--eval",
             cli_script,
-        ]))
+        ]))))
 
         # Set Environmental Variables
         sep = Sys.iswindows() ? ";" : ":"
