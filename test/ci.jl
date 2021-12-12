@@ -6,8 +6,9 @@ include("utils.jl")
 function run_ci_workflow(pkg_dir)
     # Create temporary default project
     mktempdir() do temp_project
-        # Copy pkg_dir to temp_project
+        # Copy pkg_dir to temp_project, and fix permissions
         cp(pkg_dir, temp_project; force=true)
+        chmod(temp_project, 0o700; recursive=true)
 
         # Construct CI Command
         pkgjogger_path = escape_string(PKG_JOGGER_PATH)
