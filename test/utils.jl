@@ -68,4 +68,23 @@ function test_benchmark(target, ref::BenchmarkTools.Trial)
     @test params(target) == params(ref)
 end
 
+function add_benchmark(pkg, path)
 
+    # Create Dummy Benchmark
+    filename = joinpath(PkgJogger.benchmark_dir(pkg), path)
+    dir = dirname(filename)
+    cleanup = isdir(dir) ? () -> rm(filename) : () -> rm(dir; recursive=true)
+    mkpath(dir)
+
+    open(filename, "w") do io
+        """
+        using BenchmarkTools
+
+        suite = BenchmarkGroup()
+        suite["foo"] = @benchmarkable sin(rand())
+        """ |> s -> write(io, s)
+    end
+
+    suite = Set([[splitpath(path)..., "foo"]])
+    return suite, cleanup
+end
