@@ -20,7 +20,7 @@ PkgJogger.@jog
 
 ## Benchmark Directory Structure
 
-`PkgJogger` will recursively search the a package's `benchmark/` directory
+`PkgJogger` will recursively search the package's `benchmark/` directory
 for benchmarking files `bench_*.jl` or directories `bench_*/`.
 
 For example, the following directory:

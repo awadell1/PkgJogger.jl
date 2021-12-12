@@ -3,6 +3,8 @@ using BenchmarkTools
 using PkgJogger
 using Example
 
+include("utils.jl")
+
 function check_suite(jogger; add=nothing)
     # Default Suite
     reference = [
@@ -18,28 +20,6 @@ function check_suite(jogger; add=nothing)
     suite = Set(jogger.suite() |> leaves |> x -> map(first, x))
     @test suite == reference
 end
-
-function add_benchmark(pkg, path)
-
-    # Create Dummy Benchmark
-    filename = joinpath(PkgJogger.benchmark_dir(pkg), path)
-    dir = dirname(filename)
-    cleanup = isdir(dir) ? () -> rm(filename) : () -> rm(dir; recursive=true)
-    mkpath(dir)
-
-    open(filename, "w") do io
-        """
-        using BenchmarkTools
-
-        suite = BenchmarkGroup()
-        suite["foo"] = @benchmarkable sin(rand())
-        """ |> s -> write(io, s)
-    end
-
-    suite = Set([[splitpath(path)..., "foo"]])
-    return suite, cleanup
-end
-
 
 @testset "default suite" begin
     jogger = @eval @jog Example

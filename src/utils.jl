@@ -162,7 +162,7 @@ This can reduce benchmarking runtimes significantly by only tuning new benchmark
 ignore the following:
     - Changes to benchmarking parameters (ie. memory_tolerance) between `group` and `ref`
     - Significant changes in performance, such that re-tunning is warranted
-    - Other changes (ie. changing machines), such that re-tunning is warranted?
+    - Other changes (ie. changing machines), such that re-tunning is warranted
 """
 function tune!(group::BenchmarkTools.BenchmarkGroup, ref::BenchmarkTools.BenchmarkGroup; kwargs...)
     ids = keys(group) |> collect
@@ -183,5 +183,5 @@ end
 tune!(b::BenchmarkTools.Benchmark, ref; kwargs...) = b.params = copy(ref.params)
 tune!(group::BenchmarkTools.BenchmarkGroup, ::Nothing; kwargs...) = tune!(group; kwargs...)
 tune!(group::BenchmarkTools.BenchmarkGroup; kwargs...) = BenchmarkTools.tune!(group; kwargs...)
-tune!(group::BenchmarkTools.BenchmarkGroup, ref::Dict; kwargs...) = tune!(group, ref["benchmarks"]; kwargs...)
+tune!(group::BenchmarkTools.BenchmarkGroup, ref::Dict; kwargs...) = tune!(group, get(ref, "benchmarks", nothing); kwargs...)
 tune!(group::BenchmarkTools.BenchmarkGroup, ref; kwargs...) = tune!(group, load_benchmarks(ref); kwargs...)

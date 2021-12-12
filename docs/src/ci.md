@@ -37,7 +37,7 @@ PkgJogger will create a temporary environment with the following:
 1) Activate a temporary Julia environment for benchmarking.
     - If a Julia project file exists in `benchmark/`, it will be copied to the
       temporary environment. Manifest files are currently ignored.
-    - Otherwise an empty environment is created.
+    - Otherwise, an empty environment is created.
 2) Add the current project (via `Pkg.develop`) to the benchmarking environment
    and resolve dependencies using
    [`PRESEVE_NONE`](https://pkgdocs.julialang.org/v1/api/#Pkg.add).
@@ -55,13 +55,10 @@ This results in an isolated environment with the following properties:
 
 ## Testing Benchmarks
 
-Often benchmarking suites are too large to be included as part of unit testing.
-Or [`PkgJogger.ci`](@ref) may be too costly to run with each push/pr/etc. however,
-without continuous testing, regressions are inevitable if a Package's API changes
-without corresponding updates to the benchmarking suite.
-
-[`@test_benchmarks`](@ref) provides a lightweight smoke test that can be included
-in regular unit testing, without excessively inflating the test suite
+Often benchmarking suites are too large to be included in unit testing,
+or [`PkgJogger.ci`](@ref) may be too costly to run with each push/pr/etc.
+However, regressions are inevitable without continuous testing as changes inadvertently break the benchmark suite.
+To help with this, PkgJogger provides the [`@test_benchmarks`](@ref) as a smoke test for possible breakages.
 
 ```@docs
 PkgJogger.@test_benchmarks
