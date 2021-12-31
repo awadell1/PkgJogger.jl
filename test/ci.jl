@@ -20,19 +20,22 @@ function run_ci_workflow(pkg_dir)
             PkgJogger.ci()
         """
         cmd = ignorestatus(Cmd(Vector{String}(filter(!isnothing, [
-            "julia",
+            joinpath(Sys.BINDIR, "julia"),
             "--startup-file=no",
             Base.JLOptions().code_coverage > 0 ? "--code-coverage=all" : nothing,
             "--eval",
             cli_script,
         ]))))
 
-        # Set Environmental Variables
+        # Enable user project + stdlib but remove additional entries from JULIA_LOAD_PATH
+        # This replicates the behavior of `] test`
         sep = Sys.iswindows() ? ";" : ":"
-        cmd = setenv(cmd,
-            "JULIA_LOAD_PATH" => join(["@", "@stdlib"], sep),   # Enable stdlib but ignore user projects
-            "PATH" => Sys.BINDIR,               # Add Julia to the PATH
-        )
+        cmd = setenv(cmd, "JULIA_LOAD_PATH" => join(["@", "@stdlib"], sep))
+
+        # Check things are setup
+        @test isdir(temp_project)
+        @test isdir(Sys.BINDIR)
+        @test isdir(PKG_JOGGER_PATH)
 
        # Capture stdout and stderror
         cmd_stdout =  IOBuffer(;append=true)
