@@ -163,16 +163,28 @@ function git_info(path)
         return nothing
     end
 
-    # Get Head Commit
-    head = LibGit2.peel(LibGit2.GitCommit, LibGit2.head(GitRepo(ref_dir)))
-    author_sig = LibGit2.author(head)
+    # Attempt to get git info -> But Fall back to nothing on failure
+    try
+        # Get Head Commit
+        head = LibGit2.peel(LibGit2.GitCommit, LibGit2.head(GitRepo(ref_dir)))
+        author_sig = LibGit2.author(head)
 
-    # Capture Git Info
-    Dict(
-        "commit" => LibGit2.GitHash(head) |> string,
-        "is_dirty" =>  LibGit2.with(LibGit2.isdirty, GitRepo(ref_dir)),
-        "datetime" => Dates.unix2datetime(author_sig.time) |> string,
-    )
+        # Capture Git Info
+        return Dict(
+            "commit" => LibGit2.GitHash(head) |> string,
+            "is_dirty" =>  LibGit2.with(LibGit2.isdirty, GitRepo(ref_dir)),
+            "datetime" => Dates.unix2datetime(author_sig.time) |> string,
+        )
+    catch e
+        if e isa LibGit2
+            # Something went wrong with LibGit2
+            @warn "Unable to get git info via LibGit2" exception=(e, catch_backtrace())
+        else
+            # Something went wrong with PkgJogger
+            @error "Please open an issue with PkgJogger: https://github.com/awadell1/PkgJogger.jl/issues" exception=(e, catch_backtrace())
+        end
+        return nothing
+    end
 end
 
 """
