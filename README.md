@@ -7,6 +7,8 @@
 
 [![version](https://juliahub.com/docs/PkgJogger/version.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
 [![pkgeval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/P/PkgJogger.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
+[![PkgJogger Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/PkgJogger&style=flat&label=Downloads)](https://pkgs.genieframework.com?packages=PkgJogger)
+
 
 PkgJogger provides a framework for running suites of
 [BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) benchmarks
