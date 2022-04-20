@@ -192,7 +192,7 @@ end
 
 Load benchmarking results from `filename`
 """
-function load_benchmarks(filename)
+function load_benchmarks(filename::AbstractString)
     # Decompress
     out = open(JSON.parse, GzipDecompressorStream, filename)
 
@@ -204,3 +204,45 @@ function load_benchmarks(filename)
     end
     out
 end
+
+# Handle dispatch on UUIDs from Jogger
+load_benchmarks(dir::AbstractString, uuid::UUIDs.UUID) = load_benchmarks(dir, string(uuid))
+
+# Handle dispatch on a string from Jogger
+function load_benchmarks(trial_dir, uuid::AbstractString)
+    # Check if input is a filename
+    isfile(uuid) && return PkgJogger.load_benchmarks(uuid)
+
+    # Check if a valid benchmark uuid
+    path = joinpath(trial_dir, uuid * ".json.gz")
+    @assert isfile(path) "Missing benchmarking results for $uuid, expected path: $path"
+    PkgJogger.load_benchmarks(path)
+end
+
+# Handle dispatch on a Symbol
+load_benchmarks(dir, s::Symbol) = load_benchmarks(dir, Val(s))
+
+# Load the latest benchmarking results
+function load_benchmarks(trial_dir::AbstractString, ::Val{:latest})
+    r = list_benchmarks(trial_dir)
+    @assert !isempty(r) "No benchmarking results found in $trial_dir"
+    latest = argmax(mtime, r)
+    return load_benchmarks(latest)
+end
+
+# Load the latest benchmarking results
+load_benchmarks(trial_dir::AbstractString, ::Val{:latest}) =
+    load_benchmarks(argmax(mtime, list_benchmarks(trial_dir)))
+
+# Loads the oldest benchmarking results
+load_benchmarks(trial_dir::AbstractString, ::Val{:oldest}) =
+    load_benchmarks(argmin(mtime, list_benchmarks(trial_dir)))
+
+function list_benchmarks(dir)
+    isdir(dir) || return String[]
+    files = readdir(dir; join=true, sort=false)
+    r = filter(f -> endswith(f, ".json.gz"), files)
+    @assert !isempty(r) "No benchmarking results (*.json.gz) found in $dir"
+    return r
+end
+

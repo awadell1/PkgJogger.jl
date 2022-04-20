@@ -157,22 +157,17 @@ macro jog(pkg)
             end
 
             """
-                load_benchmarks(filename::String)::Dict
-                load_benchmarks(uuid::String)::Dict
-                load_benchmarks(uuid::UUID)::Dict
+                load_benchmarks(id)::Dict
 
-            Loads benchmarking results for $($pkg) from `BENCHMARK_DIR/trial`
+            Loads benchmarking results for $($pkg) from `BENCHMARK_DIR/trial` based on `id`.
+            The following are supported `id` types:
+
+                - `filename::String`: Loads results from `filename`
+                - `uuid::Union{String, UUID}`: Loads results with the given UUID
+                - `:latest` loads the latest (By mtime) results from `BENCHMARK_DIR/trial`
+                - `:oldest` loads the oldest (By mtime) results from `BENCHMARK_DIR/trial`
             """
-            load_benchmarks(uuid::UUIDs.UUID) = load_benchmarks(string(uuid))
-            function load_benchmarks(uuid::AbstractString)
-                # Check if input is a filename
-                isfile(uuid) && return PkgJogger.load_benchmarks(uuid)
-
-                # Check if a valid benchmark uuid
-                path = joinpath(BENCHMARK_DIR, "trial", uuid * ".json.gz")
-                @assert isfile(path) "Missing benchmarking results for $uuid, expected path: $path"
-                PkgJogger.load_benchmarks(path)
-            end
+            load_benchmarks(id) = PkgJogger.load_benchmarks(joinpath(BENCHMARK_DIR, "trial"), id)
 
             """
                 judge(new, old; metric=Statistics.median, kwargs...)
