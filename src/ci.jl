@@ -223,14 +223,6 @@ end
 load_benchmarks(dir, s::Symbol) = load_benchmarks(dir, Val(s))
 
 # Load the latest benchmarking results
-function load_benchmarks(trial_dir::AbstractString, ::Val{:latest})
-    r = list_benchmarks(trial_dir)
-    @assert !isempty(r) "No benchmarking results found in $trial_dir"
-    latest = argmax(mtime, r)
-    return load_benchmarks(latest)
-end
-
-# Load the latest benchmarking results
 load_benchmarks(trial_dir::AbstractString, ::Val{:latest}) =
     load_benchmarks(argmax(mtime, list_benchmarks(trial_dir)))
 
