@@ -88,3 +88,13 @@ function add_benchmark(pkg, path)
     suite = Set([[splitpath(path)..., "foo"]])
     return suite, cleanup
 end
+
+"""
+    cleanup_example()
+
+Remove generated files from Example.jl
+"""
+function cleanup_example()
+    example_dir = joinpath(PKG_JOGGER_PATH, "test", "Example.jl")
+    rm(joinpath("Example.jl", "benchmark", "trial"); force=true, recursive=true)
+end

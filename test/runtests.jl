@@ -29,3 +29,6 @@ using PkgJogger
         doctest(PkgJogger)
     end
 end
+
+# Tests should cleanup trials after finishing
+@test !isdir(joinpath(@__DIR__, "Example.jl", "benchmark", "trial"))

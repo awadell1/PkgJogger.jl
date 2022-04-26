@@ -89,6 +89,7 @@ end
 @testset "benchmark and save" begin
     @jog Example
     @test @isdefined JogExample
+    cleanup_example()
 
     logger = TestLogger()
     with_logger(logger) do
@@ -104,13 +105,22 @@ end
     r = PkgJogger.load_benchmarks(filename)
     test_loaded_results(r)
 
-    # Check that :latest returns the same results
+    # Check that :latest and :oldest returns the same results
+    # Currently only have one result Saved
     r_latest = JogExample.load_benchmarks(:latest)
-    test_loaded_results(r_latest)
-    @test r == r_latest
-
-    # Check that :oldest returns a different result
     r_oldest = JogExample.load_benchmarks(:oldest)
-    test_loaded_results(r_oldest)
-    @test r != r_oldest
+    @test r == r_latest == r_oldest
+
+    # Check that :latest and :oldest return different results
+    # Now have two results saved, so :latest and :oldest should return different results
+    # Underlying benchmarks should still be the same, as we are using the same results
+    JogExample.save_benchmarks(r["benchmarks"])
+    r_latest = JogExample.load_benchmarks(:latest)
+    r_oldest = JogExample.load_benchmarks(:oldest)
+    @test r != r_latest
+    @test r == r_oldest
+    @test r["benchmarks"] == r_latest["benchmarks"] == r_oldest["benchmarks"]
+
 end
+
+cleanup_example()

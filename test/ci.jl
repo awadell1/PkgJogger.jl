@@ -77,6 +77,7 @@ end
 @testset "Example.jl" begin
     project = joinpath(@__DIR__, "Example.jl")
     results = run_ci_workflow(project)
+    cleanup_example()
 
     # Check timer results are decent (sleep isn't very accurate)
     isapprox((time∘minimum)(results["benchmarks"][["bench_timer.jl", "1ms"]]), 1e6; atol=3e6)
