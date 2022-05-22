@@ -158,108 +158,30 @@ end
 Tunes a BenchmarkGroup, only tunning benchmarks not found in `ref`, otherwise reuse tuning
 results from the reference BenchmarkGroup, by copying over all benchmark parameters from `ref`.
 
-Tunning is handled by `BenchmarkTools.tune!`
-
 This can reduce benchmarking runtimes significantly by only tuning new benchmarks. But does
 ignore the following:
-
-- Changes to benchmarking parameters (ie. memory_tolerance) between `group` and `ref`
-- Significant changes in performance, such that re-tunning is warranted
-- Other changes (ie. changing machines), such that re-tunning is warranted
-
-Benchmarks are in `group` and `ref` are matched after serializing their keys. This is to
-support reusing tunes from a saved run. As the key `["bench_foo.jl", 0.1]` serializes to
-`["bench_foo.jl", "0.1"]`. In order to avoid potential conflict, tuning results are only
-used iff:
-
-- `ref` has a key that serializes to a matching key (i.e. `["bench_foo.jl", "0.1"]`)
-- No other key in `ref` or `group` serializes to the same key
-
-> For example, If `ref` contained both `["bench_foo.jl", 0.1]` and `["bench_foo.jl", "0.1"]`, then
-> neither would be used, as there is no way to distinguish between the two, post-serialization.
+    - Changes to benchmarking parameters (ie. memory_tolerance) between `group` and `ref`
+    - Significant changes in performance, such that re-tunning is warranted
+    - Other changes (ie. changing machines), such that re-tunning is warranted
 """
 function tune!(group::BenchmarkTools.BenchmarkGroup, ref::BenchmarkTools.BenchmarkGroup; kwargs...)
-    # Get the benchmark trials from each set
-    group_leaves  = _resolve_leaves(group)
-    ref_leaves = _resolve_leaves(ref)
+    ids = keys(group) |> collect
+    ref_ids = keys(ref) |> collect
 
-    # Only reuse tuning results that can be uniquely identified
-    _injective!(group_leaves, ref_leaves)
-    reuse_leave, retune_leaves = group_leaves
-    ref_injective = first(ref_leaves)
-
-    # Only reuse tuning results that can be uniquely identified
-    for (k, v) in retune_leaves
-        BenchmarkTools.tune!(v; kwargs...)
+    # Tune new benchmarks
+    for id in setdiff(ids, ref_ids)
+        tune!(group[id]; kwargs...)
     end
 
     # Reuse tunning from prior benchmarks
-    for (k, v) in reuse_leave
-        v.params = copy(ref_injective[k].params)
+    for id in intersect(ids, ref_ids)
+        tune!(group[id], ref[id]; kwargs...)
     end
 
     return group
 end
-
-tune!(group::BenchmarkTools.BenchmarkGroup; kwargs...) = BenchmarkTools.tune!(group; kwargs...)
-tune!(group::BenchmarkTools.BenchmarkGroup, ref; kwargs...) = tune!(group, load_benchmarks(ref); kwargs...)
-tune!(group::BenchmarkTools.BenchmarkGroup, ref::Dict; kwargs...) = tune!(group, get(ref, "benchmarks", nothing); kwargs...)
+tune!(b::BenchmarkTools.Benchmark, ref; kwargs...) = b.params = copy(ref.params)
 tune!(group::BenchmarkTools.BenchmarkGroup, ::Nothing; kwargs...) = tune!(group; kwargs...)
-
-"""
-    injective, non_injective = _resolve_leaves(b::BenchmarkGroup)
-
-Given a benchmark group, split it's leaves into an injective and non-injective set. Leaves
-in the injective are can be uniquely identified after their key has been stringified
-
-For example, `0.1` and `"0.2"` can be uniquely identified after being stringified `"0.1" !=
-"0.2"`. But, `0.1` and `"0.1"` cannot be uniquely identified after being stringified `"0.1"
-== "0.1"`.
-
-This function splits the leaves into an injective set (Where stringifing doesn't result in
-conflicts) and an non_injective set which does.
-"""
-function _resolve_leaves(group::BenchmarkTools.BenchmarkGroup)
-    # Convert benchmark keys to vectors of strings
-    bench_leaves = leaves(group)
-    injective = Dict{Vector{String}, Any}()
-    non_injective = Dict{Vector{String}, Vector{Any}}()
-    for b in bench_leaves
-        norm_key = string.(first(b))
-        maybe_injective = !haskey(non_injective, norm_key)
-        if !haskey(injective, norm_key) && maybe_injective
-            # Unique mapping from key to string encoded key
-            injective[norm_key] = last(b)
-        else
-            # If the key was previously injective, pop it from the injective set and
-            # add it to the non-injective set
-            if maybe_injective
-                non_injective[norm_key] = [pop!(injective, norm_key)]
-            end
-
-            # And the new non-injective benchmark key
-            push!(non_injective[norm_key], last(b))
-        end
-    end
-
-    # Warn if any key is non-injective
-    if !isempty(non_injective)
-        @warn "Benchmark Keys are not-unique after serializing" keys(non_injective)
-    end
-    return injective, non_injective
-end
-
-function _injective!(a, b)
-    a_inject, a_non_inject = a
-    b_inject, b_non_inject = b
-
-    # For each uniquely identifiable key in a, check if there is a unique item in b
-    for key in keys(a_inject)
-        if haskey(b_non_inject, key) || !haskey(b_inject, key)
-            # Non-unique mapping from a -> b
-            a_non_inject[key] = [pop!(a_inject, key)]
-        end
-    end
-    return nothing
-end
-
+tune!(group::BenchmarkTools.BenchmarkGroup; kwargs...) = BenchmarkTools.tune!(group; kwargs...)
+tune!(group::BenchmarkTools.BenchmarkGroup, ref::Dict; kwargs...) = tune!(group, get(ref, "benchmarks", nothing); kwargs...)
+tune!(group::BenchmarkTools.BenchmarkGroup, ref; kwargs...) = tune!(group, load_benchmarks(ref); kwargs...)
