@@ -175,13 +175,37 @@ macro jog(pkg)
             Compares benchmarking results from `new` vs `old` for regressions/improvements
             using `metric` as a basis. Additional `kwargs` are passed to `BenchmarkTools.judge`
 
-            Identical to [`PkgJogger.judge`](@ref), but accepts UUIDs for `new` and `old`
+            Identical to [`PkgJogger.judge`](@ref), but accepts any identifier supported by
+            [`$($modname).load_benchmarks`](@ref)
+
+            ## Examples
+
+            ```julia
+            # Judge the latest results vs. the oldest
+            $($modname).judge(:latest, :oldest)
+            [...]
+            ```
+
+            ```julia
+            # Judge results by UUID
+            $($modname).judge("$(UUIDs.uuid4())", "$(UUIDs.uuid4())")
+            [...]
+            ```
+
+            ```julia
+            # Judge using the minimum, instead of the median, time
+            $($modname).judge("path/to/results.bson.gz", "$(UUIDs.uuid4())"; metric=minimum)
+            [...]
+            ```
+
             """
             function judge(new, old; kwargs...)
                 PkgJogger.judge(_get_benchmarks(new), _get_benchmarks(old); kwargs...)
             end
-            _get_benchmarks(b::AbstractString) = load_benchmarks(b)
-            _get_benchmarks(b) = PkgJogger._get_benchmarks(b)
+            _get_benchmarks(b) = load_benchmarks(b)
+            _get_benchmarks(b::Dict) = PkgJogger._get_benchmarks(b)
+            _get_benchmarks(b::BenchmarkTools.BenchmarkGroup) = b
+
         end
     end
 end

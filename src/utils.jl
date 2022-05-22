@@ -91,9 +91,13 @@ function judge(new, old; kwargs...)
     judge(new_results, old_results; kwargs...)
 end
 
+# Internal functions to handle extracting benchmark results from various types
 _get_benchmarks(b::BenchmarkTools.BenchmarkGroup) = b
-_get_benchmarks(b::Dict) =  b["benchmarks"]::BenchmarkTools.BenchmarkGroup
-_get_benchmarks(filename::String) = load_benchmarks(filename) |> _get_benchmarks
+_get_benchmarks(filename::AbstractString) = _get_benchmarks(load_benchmarks(filename))
+function _get_benchmarks(b::Dict)
+    @assert haskey(b, "benchmarks") "Missing 'benchmarks' key in $b"
+    return b["benchmarks"]::BenchmarkTools.BenchmarkGroup
+end
 
 """
     test_benchmarks(s::BenchmarkGroup)
@@ -164,24 +168,28 @@ ignore the following:
     - Significant changes in performance, such that re-tunning is warranted
     - Other changes (ie. changing machines), such that re-tunning is warranted
 """
-function tune!(group::BenchmarkTools.BenchmarkGroup, ref::BenchmarkTools.BenchmarkGroup; kwargs...)
-    ids = keys(group) |> collect
-    ref_ids = keys(ref) |> collect
-
-    # Tune new benchmarks
-    for id in setdiff(ids, ref_ids)
-        tune!(group[id]; kwargs...)
+function tune!(group::BenchmarkTools.BenchmarkGroup, ref::BenchmarkTools.BenchmarkGroup; pad="", kwargs...)
+    for (k, v) in group
+        if haskey(ref, k)
+            # Load tuning parameters from reference
+            tune!(v, ref[k]; kwargs...)
+        else
+            # Fallback to re-tuning the benchmark
+            tune!(v; kwargs...)
+        end
     end
-
-    # Reuse tunning from prior benchmarks
-    for id in intersect(ids, ref_ids)
-        tune!(group[id], ref[id]; kwargs...)
-    end
-
     return group
 end
-tune!(b::BenchmarkTools.Benchmark, ref; kwargs...) = b.params = copy(ref.params)
+
+# Fallback to using BenchmarkTools's tuning if no reference is provided
 tune!(group::BenchmarkTools.BenchmarkGroup, ::Nothing; kwargs...) = tune!(group; kwargs...)
 tune!(group::BenchmarkTools.BenchmarkGroup; kwargs...) = BenchmarkTools.tune!(group; kwargs...)
-tune!(group::BenchmarkTools.BenchmarkGroup, ref::Dict; kwargs...) = tune!(group, get(ref, "benchmarks", nothing); kwargs...)
-tune!(group::BenchmarkTools.BenchmarkGroup, ref; kwargs...) = tune!(group, load_benchmarks(ref); kwargs...)
+
+# If ref is not a BenchmarkGroup, attempt to get it based on the type
+tune!(group::BenchmarkTools.BenchmarkGroup, ref; kwargs...) = tune!(group, _get_benchmarks(ref); kwargs...)
+
+# Load tuning results from the reference benchmarking results
+function tune!(b::BenchmarkTools.Benchmark, ref; kwargs...)
+    p = ref isa BenchmarkTools.Parameters ? ref : BenchmarkTools.params(ref)
+    BenchmarkTools.loadparams!(b, p, :evals, :samples)
+end

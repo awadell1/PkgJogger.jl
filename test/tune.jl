@@ -70,7 +70,7 @@ end
     @testset "Fall back to BenchmarkTools.tune!" begin
         @test_tune PkgJogger.tune!(ref_suite()) ref_tune
         @test_tune PkgJogger.tune!(ref_suite(), nothing) ref_tune
-        @test_tune PkgJogger.tune!(ref_suite(), Dict()) ref_tune
+        @test_throws AssertionError PkgJogger.tune!(ref_suite(), Dict())
     end
 
     @testset "Reuse prior tune" begin
