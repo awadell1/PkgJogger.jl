@@ -45,8 +45,8 @@ include("utils.jl")
         @test r2 == r3 == r4 == r5
 
         # Check that we error for invalid uuids
-        @test_throws AssertionError JogExample.load_benchmarks("not-a-uuid")
-        @test_throws AssertionError JogExample.load_benchmarks(UUIDs.uuid4())
+        @test_throws ErrorException JogExample.load_benchmarks("not-a-uuid")
+        @test_throws ErrorException JogExample.load_benchmarks(UUIDs.uuid4())
         @test_throws MethodError JogExample.load_benchmarks(:not_a_valid_option)
     end
 

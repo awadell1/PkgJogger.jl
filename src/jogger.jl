@@ -143,7 +143,7 @@ macro jog(pkg)
             """
                 save_benchmarks(results::BenchmarkGroup)::String
 
-            Saves benchmarking results for $($pkg) to `BENCHMARK_DIR/trial/uuid4().json.gz`.
+            Saves benchmarking results for $($pkg) to `BENCHMARK_DIR/trial/uuid4().bson.gz`.
 
             Returns the path to the saved results
 
@@ -151,7 +151,7 @@ macro jog(pkg)
             [`$($modname).load_benchmarks(uuid)`](@ref)
             """
             function save_benchmarks(results)
-                filename = joinpath(BENCHMARK_DIR, "trial", "$(UUIDs.uuid4()).json.gz")
+                filename = joinpath(BENCHMARK_DIR, "trial", "$(UUIDs.uuid4()).bson.gz")
                 PkgJogger.save_benchmarks(filename, results)
                 filename
             end

@@ -96,5 +96,22 @@ Remove generated files from Example.jl
 """
 function cleanup_example()
     example_dir = joinpath(PKG_JOGGER_PATH, "test", "Example.jl")
-    rm(joinpath("Example.jl", "benchmark", "trial"); force=true, recursive=true)
+    rm(joinpath(example_dir, "benchmark", "trial"); force=true, recursive=true)
+end
+
+import Base: ==
+"""
+    ==(a::Base.Sys.CPUinfo, b::Base.Sys.CPUinfo)
+
+Mark two CPUinfo objects as equal if all of their fields match
+"""
+function ==(a::Base.Sys.CPUinfo, b::Base.Sys.CPUinfo)
+    for f in propertynames(a)
+        af = getproperty(a, f)
+        bf = getproperty(b, f)
+        if af != bf
+            return false
+        end
+    end
+    return true
 end
