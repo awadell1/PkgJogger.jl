@@ -62,7 +62,7 @@ To get around the above, run `@jog PkgName` to get an updated jogger.
 
 ## Continuous Benchmarking Baked In!
 
-Install PkgJogger, run benchmarks, and save results to a `*.json.gz` with a
+Install PkgJogger, run benchmarks, and save results to a `*.bson.gz` with a
 one-line command.
 
 ```shell
@@ -77,7 +77,7 @@ What gets done:
 - Creates a [jogger](https://awadell1.github.io/PkgJogger.jl/stable/jogger/)
   to run the package's benchmarks.
 - Warmup, tune and run all benchmarks.
-- Save Benchmarking results and more to a compressed `*.json.gz` file.
+- Save Benchmarking results and more to a compressed `*.bson.gz` file.
 
 Or for a more lightweight option, use
 [`@test_bechmarks`](https://awadell1.github.io/PkgJogger.jl/stable/ci/#Testing-Benchmarks)

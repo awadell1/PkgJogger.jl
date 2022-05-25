@@ -5,6 +5,7 @@ using BenchmarkTools
 using Revise
 using CodecZlib
 using JSON
+using BSON
 using Pkg
 using UUIDs
 using Dates
@@ -26,6 +27,10 @@ const JOGGER_PKGS = [
     PkgId(UUID("295af30f-e4ad-537b-8983-00126c2a3abe"), "Revise"),
     PkgId(UUID("cf7118a7-6976-5b1a-9a39-7adc72f591a4"), "UUIDs"),
 ]
+
+const PKG_JOGGER_VER = VersionNumber(
+    Base.parsed_toml(joinpath(@__DIR__, "..", "Project.toml"))["version"]
+)
 
 include("utils.jl")
 include("jogger.jl")

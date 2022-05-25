@@ -11,6 +11,7 @@ These methods build on
   - System Information (Essentially everything in `Sys`)
   - Timestamp when the results get saved
   - Git Information, if run from a Git Repository
+  - The version of PkgJogger used to save the results
 
 Overall the resulting files are ~10x smaller, despite capturing additional information.
 
@@ -28,7 +29,7 @@ using PkgJogger
 @jog AwesomePkg
 results = JogAwesomePkg.benchmark()
 
-# Saves results to BENCH_DIR/trial/UUID.json.gz and returns the filename used
+# Saves results to BENCH_DIR/trial/UUID.bson.gz and returns the filename used
 JogAwesomePkg.save_benchmarks(results)
 
 # Or run and save the benchmarks in a single step, the filename saved to

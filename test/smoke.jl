@@ -38,14 +38,16 @@ include("utils.jl")
         uuid = get_uuid(file)
         r3 = JogExample.load_benchmarks(uuid)
         r4 = JogExample.load_benchmarks(UUID(uuid))
+        r5 = JogExample.load_benchmarks(:latest)
         @test r3 == r4
         @test r3["benchmarks"] == r
         @test r4["benchmarks"] == r
-        @test r2 == r3 == r4
+        @test r2 == r3 == r4 == r5
 
         # Check that we error for invalid uuids
-        @test_throws AssertionError JogExample.load_benchmarks("not-a-uuid")
-        @test_throws AssertionError JogExample.load_benchmarks(UUIDs.uuid4())
+        @test_throws ErrorException JogExample.load_benchmarks("not-a-uuid")
+        @test_throws ErrorException JogExample.load_benchmarks(UUIDs.uuid4())
+        @test_throws MethodError JogExample.load_benchmarks(:not_a_valid_option)
     end
 
     # Test Retuning
@@ -53,6 +55,8 @@ include("utils.jl")
         test_benchmark(JogExample.benchmark(ref = r), r)
         test_benchmark(JogExample.benchmark(ref = get_uuid(file)), r)
         test_benchmark(JogExample.benchmark(ref = file), r)
+        test_benchmark(JogExample.benchmark(ref = :latest), r)
+        test_benchmark(JogExample.benchmark(ref = :oldest), r)
     end
 
     # Test Judging
@@ -85,6 +89,7 @@ end
 @testset "benchmark and save" begin
     @jog Example
     @test @isdefined JogExample
+    cleanup_example()
 
     logger = TestLogger()
     with_logger(logger) do
@@ -99,4 +104,23 @@ end
     filename = match(r"\S*$", logger.logs[1].message).match
     r = PkgJogger.load_benchmarks(filename)
     test_loaded_results(r)
+
+    # Check that :latest and :oldest returns the same results
+    # Currently only have one result Saved
+    r_latest = JogExample.load_benchmarks(:latest)
+    r_oldest = JogExample.load_benchmarks(:oldest)
+    @test r == r_latest == r_oldest
+
+    # Check that :latest and :oldest return different results
+    # Now have two results saved, so :latest and :oldest should return different results
+    # Underlying benchmarks should still be the same, as we are using the same results
+    JogExample.save_benchmarks(r["benchmarks"])
+    r_latest = JogExample.load_benchmarks(:latest)
+    r_oldest = JogExample.load_benchmarks(:oldest)
+    @test r != r_latest
+    @test r == r_oldest
+    @test r["benchmarks"] == r_latest["benchmarks"] == r_oldest["benchmarks"]
+
 end
+
+cleanup_example()

@@ -29,3 +29,5 @@ end
 @testset "Test JogPkgName.judge" for (n, o) in Iterators.product(new, old)
     test_judge(JogExample.judge, n, o)
 end
+
+cleanup_example()

@@ -23,9 +23,13 @@ using PkgJogger
     @safetestset "CI Workflow" begin include("ci.jl") end
     @safetestset "Locate Benchmarks" begin include("locate_benchmarks.jl") end
     @safetestset "Tuning Suites" begin include("tune.jl") end
+    @safetestset "Backwards Compatibility" begin include("backward_compat.jl") end
     @safetestset "Doc Tests" begin
         using PkgJogger
         using Documenter
         doctest(PkgJogger)
     end
 end
+
+# Tests should cleanup trials after finishing
+@test !isdir(joinpath(@__DIR__, "Example.jl", "benchmark", "trial"))

@@ -88,7 +88,7 @@ end
 """
     save_benchmarks(filename, results::BenchmarkGroup)
 
-Save benchmarking results to `filename.json.gz` for later
+Save benchmarking results to `filename.bson.gz` for later
 analysis.
 
 ## File Contents
@@ -97,9 +97,10 @@ analysis.
 - Timestamp
 - Benchmarking Results
 - Git Commit, 'Is Dirty' status and author datetime
+- PkgJogger Version used to save the file
 
 ## File Format:
-Results are saved as a gzip compressed JSON file and can be loaded
+Results are saved as a gzip compressed BSON file and can be loaded
 with [`PkgJogger.load_benchmarks`](@ref)
 """
 function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
@@ -108,14 +109,15 @@ function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
     out = Dict(
         "julia" => julia_info(),
         "system" => system_info(),
-        "datetime" => string(Dates.now()),
+        "datetime" => Dates.now(),
         "benchmarks" => results,
         "git" => git_info(filename),
+        "pkgjogger" => PkgJogger.PKG_JOGGER_VER,
     )
 
     # Write benchmark to disk
     open(GzipCompressorStream, filename, "w") do io
-        JSON.print(io, out)
+        bson(io, out)
     end
 end
 
@@ -173,7 +175,7 @@ function git_info(path)
         return Dict(
             "commit" => LibGit2.GitHash(head) |> string,
             "is_dirty" =>  LibGit2.with(LibGit2.isdirty, GitRepo(ref_dir)),
-            "datetime" => Dates.unix2datetime(author_sig.time) |> string,
+            "datetime" => Dates.unix2datetime(author_sig.time),
         )
     catch e
         if e isa LibGit2
@@ -191,16 +193,73 @@ end
     load_benchmarks(filename::String)::Dict
 
 Load benchmarking results from `filename`
-"""
-function load_benchmarks(filename)
-    # Decompress
-    out = open(JSON.parse, GzipDecompressorStream, filename)
 
-    # Recover BenchmarkTools Types
-    if haskey(out, "benchmarks")
-        out["benchmarks"] = BenchmarkTools.recover(out["benchmarks"])
+> Prior to v0.4 PkgJogger saved results as `*.json.gz` instead of `*.bson.gz`.
+> This function supports both formats. However, the `*.json.gz` format is
+> deprecated, and may not support all features.
+"""
+function load_benchmarks(filename::AbstractString)
+    # Decompress
+    if endswith(filename, ".json.gz")
+        @warn "Legacy `*.json.gz` format is deprecated, some features may not be supported"
+        reader = JSON.parse
+    elseif endswith(filename, ".bson.gz")
+        reader = io -> BSON.load(io, @__MODULE__)
     else
-        error("Missing 'benchmarks' field in $filename")
+        error("Unsupported file format: $filename")
     end
-    out
+    out = open(reader, GzipDecompressorStream, filename)
+
+    # Get PkgJogger version
+    version = haskey(out, "pkgjogger") ? out["pkgjogger"] : missing
+
+    # Recover Benchmarking Results
+    if ismissing(version)
+        @assert haskey(out, "benchmarks") "Missing 'benchmarks' field in $filename"
+        out["benchmarks"] = BenchmarkTools.recover(out["benchmarks"])
+    end
+
+    return out
 end
+
+# Possible file extensions for a PkgJogger file
+const PKG_JOGGER_EXT = (".bson.gz", ".json.gz")
+
+# Handle dispatch on UUIDs from Jogger
+function load_benchmarks(trial_dir::AbstractString, uuid::UUIDs.UUID)
+    for ext in PKG_JOGGER_EXT
+        full_path = joinpath(trial_dir, string(uuid) * ext)
+        if isfile(full_path)
+            return load_benchmarks(full_path)
+        end
+    end
+    error("Unable to find benchmarking results for $uuid in $trial_dir")
+end
+
+# Handle dispatch on a string from Jogger
+function load_benchmarks(trial_dir, id::AbstractString)
+    # Attempt to parse string as UUID -> If not, assume it is a filename
+    uuid = Base.tryparse(UUID, id)
+    isnothing(uuid) && return load_benchmarks(id)
+    return load_benchmarks(trial_dir, uuid)
+end
+
+# Handle dispatch on a Symbol
+load_benchmarks(trial_dir, s::Symbol) = load_benchmarks(trial_dir, Val(s))
+
+# Load the latest benchmarking results
+load_benchmarks(trial_dir::AbstractString, ::Val{:latest}) =
+    load_benchmarks(argmax(mtime, list_benchmarks(trial_dir)))
+
+# Loads the oldest benchmarking results
+load_benchmarks(trial_dir::AbstractString, ::Val{:oldest}) =
+    load_benchmarks(argmin(mtime, list_benchmarks(trial_dir)))
+
+function list_benchmarks(dir)
+    isdir(dir) || return String[]
+    files = readdir(dir; join=true, sort=false)
+    r = filter(f -> any(e -> endswith(f, e), PKG_JOGGER_EXT), files)
+    @assert !isempty(r) "No benchmarking results found in $dir"
+    return r
+end
+
