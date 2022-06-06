@@ -248,12 +248,18 @@ end
 load_benchmarks(trial_dir, s::Symbol) = load_benchmarks(trial_dir, Val(s))
 
 # Load the latest benchmarking results
-load_benchmarks(trial_dir::AbstractString, ::Val{:latest}) =
-    load_benchmarks(argmax(mtime, list_benchmarks(trial_dir)))
+function load_benchmarks(trial_dir::AbstractString, ::Val{:latest})
+    files = list_benchmarks(trial_dir)
+    latest = argmax(mtime.(files))
+    return load_benchmarks(files[latest])
+end
 
 # Loads the oldest benchmarking results
-load_benchmarks(trial_dir::AbstractString, ::Val{:oldest}) =
-    load_benchmarks(argmin(mtime, list_benchmarks(trial_dir)))
+function load_benchmarks(trial_dir::AbstractString, ::Val{:oldest})
+    files = list_benchmarks(trial_dir)
+    oldest = argmin(mtime.(files))
+    return load_benchmarks(files[oldest])
+end
 
 function list_benchmarks(dir)
     isdir(dir) || return String[]

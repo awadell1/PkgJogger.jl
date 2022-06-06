@@ -1,9 +1,15 @@
-using PkgJogger
-using Documenter
+# Setup the Documenter environment
+using Pkg
+Pkg.activate(@__DIR__)
+Pkg.develop([
+    PackageSpec(path=joinpath(@__DIR__, "..")),
+    PackageSpec(path=joinpath(@__DIR__, "..", "test", "Example.jl"))
+])
+Pkg.instantiate()
 
-# Generate an example Jogger to document
-using  Pkg
-Pkg.develop(path=joinpath(@__DIR__, "..", "test", "Example.jl"))
+# Load Code
+using Documenter
+using PkgJogger
 using Example
 @jog Example
 
