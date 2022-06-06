@@ -183,7 +183,7 @@ end
 
 # Fallback to using BenchmarkTools's tuning if no reference is provided
 tune!(group::BenchmarkTools.BenchmarkGroup, ::Nothing; kwargs...) = tune!(group; kwargs...)
-tune!(b; kwargs...) = BenchmarkTools.tune!(b; kwargs...)
+tune!(group::BenchmarkTools.BenchmarkGroup; kwargs...) = BenchmarkTools.tune!(group; kwargs...)
 
 # If ref is not a BenchmarkGroup, attempt to get it based on the type
 tune!(group::BenchmarkTools.BenchmarkGroup, ref; kwargs...) = tune!(group, _get_benchmarks(ref); kwargs...)
