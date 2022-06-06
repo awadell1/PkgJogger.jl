@@ -5,35 +5,6 @@ using Example
 
 include("utils.jl")
 
-#@testset "smoke" begin
-#    # Set up jogger with default example suite
-#    jogger = @eval @jog Example
-#
-#    # Reuse the same tune for all benchmarks
-#    ref = jogger.run()
-#    @testset "from BenchmarkGroup" begin
-#        @test_nowarn jogger.benchmark(; ref = ref)
-#    end
-#
-#    # Repeat but load the tune from a file
-#    trial = jogger.save_benchmarks(ref)
-#    @testset "from disk" begin
-#        @test_nowarn jogger.benchmark(; ref = trial)
-#    end
-#    rm(trial)
-#
-#    # Repeat, but tune the new benchmarks
-#    @testset "partial tune!" begin
-#        suite, cleanup = add_benchmark(Example, "bench_foo_$(rand(UInt16)).jl")
-#        jogger_new = @eval @jog Example
-#        r = @test_nowarn jogger.benchmark(; ref = ref)
-#        cleanup()
-#
-#        # Now with fewer benchmarks
-#        @test_nowarn jogger.benchmark(; ref = r)
-#    end
-#end
-
 macro test_tune(s, ref)
     quote
         s = $(esc(s))
@@ -93,6 +64,30 @@ end
         tune!(expected_tune["bench_tune.jl"])
 
         @test_tune PkgJogger.tune!(new_suite, rand_tune) expected_tune
+    end
+
+    @testset "Missing Tune" begin
+        # Re-tune using an empty suite -> Everything should be tuned
+        @testset "Empty Suite" begin
+            new_suite = random_tune(ref_suite())
+            ref = BenchmarkGroup()
+            @test_tune PkgJogger.tune!(new_suite, ref) ref_tune
+        end
+
+        # Retune using a missing benchmark -> Only it should be tuned
+        @testset "Missing Reference Benchmark" begin
+            new_suite = random_tune(ref_suite())
+            ref = random_tune(ref_suite())
+
+            # Add a new benchmark to new_suite to be tunned
+            n, b = first(leaves(new_suite))
+            n[end] = rand()
+            new_suite[n] = b
+
+            # Everything except the new benchmark should be tuned
+            r = PkgJogger.tune!(new_suite, ref)
+            @test_tune r[ref] ref
+        end
     end
 
     @testset "Ignore additional tunes" begin
