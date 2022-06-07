@@ -24,8 +24,12 @@ end
 new = gen_example()
 old = gen_example()
 
-@testset "Test JogPkgName.judge($(typeof(n)), $(typeof(o)))" for (n, o) in Iterators.product(new, old)
+@testset "JogPkgName.judge($(typeof(n)), $(typeof(o)))" for (n, o) in Iterators.product(new, old)
     test_judge(JogExample.judge, n, o)
+end
+
+@testset "PkgJogger.judge($(typeof(n)), $(typeof(o)))" for (n, o) in Iterators.product(new[1:3], old[1:3])
+    test_judge(PkgJogger.judge, n, o)
 end
 
 @testset "Missing Results - $(typeof(n))" for n in new
