@@ -82,7 +82,7 @@ end
             # Add a new benchmark to new_suite to be tunned
             n, b = first(leaves(new_suite))
             n[end] = rand()
-            new_suite[n] = b
+            new_suite[n] = deepcopy(b)
 
             # Everything except the new benchmark should be tuned
             r = PkgJogger.tune!(new_suite, ref)

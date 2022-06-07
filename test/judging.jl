@@ -42,7 +42,7 @@ end
         # Add a new Trial results
         name, trial = first(leaves(ref))
         name[end] = rand()
-        ref[name] = trial
+        ref[name] = deepcopy(trial)
 
         # Expect the extra benchmark to be skipped
         judgement = test_judge(JogExample.judge, n, ref)
