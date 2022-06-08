@@ -1,9 +1,12 @@
 module TUI
 
 using PkgJogger
+using Dates
 using BenchmarkTools
+using REPL.Terminals
 using REPL.TerminalMenus
 using FoldingTrees
+using Revise
 
 struct BenchmarkLeaf{T}
     id::Vector
@@ -62,7 +65,7 @@ end
 
 TerminalMenus.pick(m::BenchmarkSelect, cursor::Int) = true
 TerminalMenus.cancel(m::BenchmarkSelect) = empty!(m.selected)
-TerminalMenus.numoptions(m::BenchmarkSelect) = TerminalMenus.numoptions(m.root)
+TerminalMenus.numoptions(m::BenchmarkSelect) = TerminalMenus.numoptions(m.root) -1
 
 function TerminalMenus.selected(m::BenchmarkSelect)
     s = BenchmarkGroup()
@@ -72,23 +75,19 @@ function TerminalMenus.selected(m::BenchmarkSelect)
     return s
 end
 
-function TerminalMenus.header(m::BenchmarkSelect)
-    return """
-    Choose benchmarks from the suite. [q]uit. [↵] to confirm. [←] Deselect [→] Select
-    """
-end
-
 function TerminalMenus.writeline(buf::IO, m::BenchmarkSelect, cursor::Int, iscursor::Bool)
-    node = FoldingTrees.setcurrent!(m.root, cursor)
+    node = FoldingTrees.setcurrent!(m.root, cursor+1)
     if iscursor
         m.root.cursoridx = cursor
     end
 
     # Mark if folded
+    m.root.currentdepth > 2 && print(buf, " "^(m.root.currentdepth-2))
     node.foldchildren ? print(buf, "+") : print(buf, " ")
 
     # Mark if selected
     selected = node.data.selected[]
+    iscursor ? print(buf, " ▶ ") : print(buf, "   ")
     if selected == true
         print(buf, m.config.checked)
     elseif selected == false
@@ -96,17 +95,17 @@ function TerminalMenus.writeline(buf::IO, m::BenchmarkSelect, cursor::Int, iscur
     else
         print(buf, "◔")
     end
-    print(buf, " "^m.root.currentdepth)
-    FoldingTrees.writeoption(buf, node.data, m.root.currentdepth+4)
+    print(buf, " ")
+    print(buf, node.data.name)
 end
 
 function TerminalMenus.keypress(m::BenchmarkSelect, key::UInt32)
     if key == UInt32(' ') # Fold or unfold the current node
-        partial_fold!(m, cursor(m))
+        partial_fold!(m, cursor(m)+1)
     elseif key == Int(TerminalMenus.ARROW_LEFT) # Deselect this node and children
-        return deselect!(m, cursor(m))
+        return deselect!(m, cursor(m)+1)
     elseif key == Int(TerminalMenus.ARROW_RIGHT) # Select this node
-        return select!(m, cursor(m))
+        return select!(m, cursor(m)+1)
     else
         return false
     end
@@ -190,10 +189,183 @@ function update_select!(m::BenchmarkSelect)
     return nothing
 end
 
-function tui(x; kwargs...)
-    menu = BenchmarkSelect(PkgJogger._get_benchmarks(x); kwargs...)
-    choice = request(menu)
-    return choice
+mutable struct JoggerUI <: TerminalMenus.AbstractMenu
+    jogger::Module
+    menu::BenchmarkSelect
+    mode::Symbol
+    action::Symbol
+    reference::Any
+    toggles::Dict{Symbol, Bool}
+    pagesize::Int
+    pageoffset::Int
+end
+
+function JoggerUI(jogger)
+    menu = BenchmarkSelect(jogger.suite())
+    mode = :benchmark
+    toggles = Dict(
+        :save => true,
+        :verbose => true,
+        :reuse_tune => true,
+    )
+    JoggerUI(jogger, menu, mode, mode, :latest, toggles, menu.pagesize, menu.pageoffset)
+end
+
+TerminalMenus.numoptions(m::JoggerUI) = TerminalMenus.numoptions(m.menu)
+TerminalMenus.pick(m::JoggerUI, cursor::Int) = TerminalMenus.pick(m.menu, cursor)
+TerminalMenus.cancel(m::JoggerUI) = m.action = :exit
+TerminalMenus.selected(m::JoggerUI) = m.action
+TerminalMenus.writeline(buf::IO, m::JoggerUI, cursor::Int, iscursor::Bool) =
+    TerminalMenus.writeline(buf, m.menu, cursor, iscursor)
+function TerminalMenus.keypress(m::JoggerUI, key::UInt32)
+    if key == UInt32('b')
+        m.mode = :benchmark
+        m.action = :judge
+        return false
+    elseif key == UInt32('u')
+        m.mode = :judge
+        m.action = :judge
+        return false
+    elseif key == UInt32('w')
+        m.action = :review
+        return true
+    elseif key == UInt32('s')
+        m.toggles[:save] = !m.toggles[:save]
+        return false
+    elseif key == UInt32('v')
+        m.toggles[:verbose] = !m.toggles[:verbose]
+        return false
+    elseif key == UInt32('t')
+        m.toggles[:reuse_tune] = !m.toggles[:reuse_tune]
+        return false
+    elseif key == UInt32('f')
+        m.action = :select_reference
+        return true
+    elseif key == UInt32('r')
+        m.action = :revise
+        return true
+    elseif key == UInt32('R')
+        m.action = :reload
+        return true
+    else
+        TerminalMenus.keypress(m.menu, key)
+    end
+end
+
+function print_toggle(io::IO, pre::String, key::String, post::String, colorize::Bool)
+    print(io, pre)
+    colorize ? printstyled(io, key; color=:cyan) : print(io, key)
+    print(io, post)
+    return nothing
+end
+
+function TerminalMenus.header(m::JoggerUI)
+    io = IOBuffer()
+    ioctx = IOContext(io, :color=>true)
+    colorize(c::String) = sprint(() -> printstyled(c; color=:cyan))
+    println(ioctx, "[q]uit. [←] to Deselect. [→] to Select. [␣] to Fold. [↵] confirm selection.")
+
+    print(ioctx, "")
+    print(ioctx, "Mode: ")
+    print_toggle(ioctx, "[", "b", "]enchmark ", m.mode == :benchmark)
+    print_toggle(ioctx, "j[", "u", "]dge ", m.mode == :judge)
+
+    print(ioctx, "\nActions: ")
+    print(ioctx, "[", "r", "]evise. ")
+    print(ioctx, "change re[", "f", "]erence. ")
+    print_toggle(ioctx, "sho[", "w", "] reference", m.mode == :review)
+
+    print(ioctx, "\nReference: ")
+    print(ioctx, m.reference)
+
+    print(ioctx, "\nOptions: ")
+    print_toggle(ioctx, "[", "v", "]erbose. ", m.toggles[:verbose])
+    print_toggle(ioctx, "[", "s", "]ave. ", m.toggles[:save])
+    print_toggle(ioctx, "reuse [", "t", "]une. ", m.toggles[:reuse_tune])
+
+
+    return String(take!(io))
+end
+
+function tui(jogger)
+    m = JoggerUI(jogger)
+    while true
+        m.action = m.mode
+        action = request(m)
+        if action == :exit
+            break
+        elseif action == :revise
+            Revise.revise()
+            m.menu = BenchmarkSelect(m.jogger.suite())
+            @info "Triggered Revise"
+
+        elseif action == :benchmark
+            suite = TerminalMenus.selected(m.menu)
+            if isempty(suite)
+                @warn "No benchmarks selected"
+            else
+                !m.toggles[:verbose] && @info "Running Benchmarks for $(m.jogger.PARENT_PKG)"
+                m.jogger.benchmark(suite;
+                    save=m.toggles[:save],
+                    verbose=m.toggles[:verbose],
+                    ref=m.toggles[:reuse_tune] ? :latest : m.reference,
+                )
+            end
+
+        elseif action == :judge
+            suite = TerminalMenus.selected(m.menu)
+            judgement = m.jogger.judge(:latest, :oldest)
+            show(judgement[suite])
+
+        elseif action == :review
+            choice = TerminalMenus.selected(m.menu)
+            if isempty(choice)
+                @warn "No benchmarks selected"
+                continue
+            end
+            results = m.jogger.load_benchmarks(m.reference)["benchmarks"]
+            print("\n")
+            for (k, v) in leaves(results[choice])
+                println(join(k, " - "))
+                display(v)
+                println()
+            end
+
+        elseif action == :select_reference
+            trial_dir = joinpath(m.jogger.BENCHMARK_DIR, "trial")
+            result_files = PkgJogger.list_benchmarks(trial_dir)
+            mtimes = map(mtime, result_files)
+            sdx = sortperm(mtimes; rev=true)
+            identifiers = Any[]
+            options = String[]
+
+            # Add tagged identifiers
+            datewidth = 25
+            push!(identifiers, :latest); push!(options, "$(repeat(' ', datewidth)) latest")
+            push!(identifiers, :oldest); push!(options, "$(repeat(' ', datewidth)) oldest")
+
+            # Add options for each result file
+            for (f, m) in zip(result_files[sdx], mtimes[sdx])
+                uuid = PkgJogger.__get_uuid(f)
+                datestr = rpad(Libc.strftime("%c", m), datewidth)
+                push!(identifiers, uuid)
+                push!(options, "$datestr $uuid")
+            end
+
+            ref_picker = TerminalMenus.RadioMenu(options; charset=:unicode)
+            println("Select a reference for tuning / judging.")
+            println("[q]uit to cancel. [↵] to confirm.")
+            println("   $(rpad("Date", datewidth)) Identifier")
+            choice = request(ref_picker)
+            if choice != -1
+                m.reference = identifiers[choice]
+            end
+        else
+            @warn "Unknown action: $action, Please report this: https://github.com/awadell1/PkgJogger.jl/issues"
+            break
+        end
+        println("") # Add some space with the last menu
+    end
 end
 
 end

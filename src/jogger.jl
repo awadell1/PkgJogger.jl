@@ -84,6 +84,11 @@ macro jog(pkg)
             const BENCHMARK_DIR = $bench_dir
 
             """
+            Parent Package
+            """
+            const PARENT_PKG = $pkg
+
+            """
                 suite()::BenchmarkGroup
 
             The BenchmarkTools suite for $($pkg)
@@ -111,8 +116,7 @@ macro jog(pkg)
             for [`$($mod_str).load_benchmarks`](@ref). See [`PkgJogger.tune!`](@ref) for
             more information about re-using tuning results.
             """
-            function benchmark(; verbose = false, save = false, ref = nothing)
-                s = suite()
+            function benchmark(s = suite(); verbose = false, save = false, ref = nothing)
                 BenchmarkTools.warmup(s; verbose)
                 __tune!(s, ref; verbose = verbose)
                 results = BenchmarkTools.run(s; verbose = verbose)
@@ -229,8 +233,7 @@ macro jog(pkg)
 
             Launch a Text User Interface for working with the benchmarking suite of $($pkg).
             """
-            tui(id) = PkgJogger.TUI.tui(_get_benchmarks(id))
-            tui() = PkgJogger.TUI.tui(suite())
+            tui() = PkgJogger.TUI.tui($modname)
 
         end
     end

@@ -269,3 +269,9 @@ function list_benchmarks(dir)
     return r
 end
 
+"""
+    __get_uuid(filename)
+
+Extract benchmark UUID from filename
+"""
+__get_uuid(filename) = splitpath(filename)[end] |> x -> split(x, ".")[1]
