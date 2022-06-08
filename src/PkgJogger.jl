@@ -35,5 +35,6 @@ const PKG_JOGGER_VER = VersionNumber(
 include("utils.jl")
 include("jogger.jl")
 include("ci.jl")
+include("tui.jl")
 
 end

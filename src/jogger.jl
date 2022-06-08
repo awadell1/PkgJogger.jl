@@ -224,6 +224,14 @@ macro jog(pkg)
             _get_benchmarks(b::Dict) = PkgJogger._get_benchmarks(b)
             _get_benchmarks(b::BenchmarkTools.BenchmarkGroup) = b
 
+            """
+                $($mod_str).tui()
+
+            Launch a Text User Interface for working with the benchmarking suite of $($pkg).
+            """
+            tui(id) = PkgJogger.TUI.tui(_get_benchmarks(id))
+            tui() = PkgJogger.TUI.tui(suite())
+
         end
     end
 end
