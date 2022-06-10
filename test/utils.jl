@@ -69,7 +69,16 @@ function test_benchmark(target, ref::BenchmarkTools.Trial)
 end
 
 function add_benchmark(pkg, path)
+    contents=""""
+    using BenchmarkTools
 
+    suite = BenchmarkGroup()
+    suite["foo"] = @benchmarkable sin(rand())
+    """
+    add_benchmark(pkg, path, contents)
+end
+
+function add_benchmark(pkg, path, content)
     # Create Dummy Benchmark
     filename = joinpath(PkgJogger.benchmark_dir(pkg), path)
     dir = dirname(filename)
@@ -77,12 +86,7 @@ function add_benchmark(pkg, path)
     mkpath(dir)
 
     open(filename, "w") do io
-        """
-        using BenchmarkTools
-
-        suite = BenchmarkGroup()
-        suite["foo"] = @benchmarkable sin(rand())
-        """ |> s -> write(io, s)
+        write(io, content)
     end
 
     suite = Set([[splitpath(path)..., "foo"]])

@@ -220,7 +220,7 @@ TerminalMenus.writeline(buf::IO, m::JoggerUI, cursor::Int, iscursor::Bool) =
 function TerminalMenus.keypress(m::JoggerUI, key::UInt32)
     if key == UInt32('b')
         m.mode = :benchmark
-        m.action = :judge
+        m.action = :benchmark
         return false
     elseif key == UInt32('u')
         m.mode = :judge
@@ -287,11 +287,11 @@ function TerminalMenus.header(m::JoggerUI)
     return String(take!(io))
 end
 
-function tui(jogger)
+function tui(jogger; term=TerminalMenus.terminal)
     m = JoggerUI(jogger)
     while true
         m.action = m.mode
-        action = request(m)
+        action = request(term, m)
         if action == :exit
             break
         elseif action == :revise
@@ -305,11 +305,15 @@ function tui(jogger)
                 @warn "No benchmarks selected"
             else
                 !m.toggles[:verbose] && @info "Running Benchmarks for $(m.jogger.PARENT_PKG)"
-                m.jogger.benchmark(suite;
-                    save=m.toggles[:save],
-                    verbose=m.toggles[:verbose],
-                    ref=m.toggles[:reuse_tune] ? :latest : m.reference,
-                )
+                try
+                    m.jogger.benchmark(suite;
+                        save=m.toggles[:save],
+                        verbose=m.toggles[:verbose],
+                        ref=m.toggles[:reuse_tune] ? m.reference : nothing
+                    )
+                catch e
+                    @error "An error was thrown while benchmarking" exception=(e, catch_backtrace())
+                end
             end
 
         elseif action == :judge
