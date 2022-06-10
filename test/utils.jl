@@ -69,7 +69,7 @@ function test_benchmark(target, ref::BenchmarkTools.Trial)
 end
 
 function add_benchmark(pkg, path)
-    contents=""""
+    contents="""
     using BenchmarkTools
 
     suite = BenchmarkGroup()

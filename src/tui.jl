@@ -244,9 +244,6 @@ function TerminalMenus.keypress(m::JoggerUI, key::UInt32)
     elseif key == UInt32('r')
         m.action = :revise
         return true
-    elseif key == UInt32('R')
-        m.action = :reload
-        return true
     else
         TerminalMenus.keypress(m.menu, key)
     end
@@ -360,7 +357,7 @@ function tui(jogger; term=TerminalMenus.terminal)
             println("Select a reference for tuning / judging.")
             println("[q]uit to cancel. [↵] to confirm.")
             println("   $(rpad("Date", datewidth)) Identifier")
-            choice = request(ref_picker)
+            choice = request(term, ref_picker)
             if choice != -1
                 m.reference = identifiers[choice]
             end
