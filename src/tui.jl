@@ -284,11 +284,11 @@ function TerminalMenus.header(m::JoggerUI)
     return String(take!(io))
 end
 
-function tui(jogger; term=TerminalMenus.terminal)
+function tui(jogger)
     m = JoggerUI(jogger)
     while true
         m.action = m.mode
-        action = request(term, m)
+        action = request(m)
         if action == :exit
             break
         elseif action == :revise
@@ -357,7 +357,7 @@ function tui(jogger; term=TerminalMenus.terminal)
             println("Select a reference for tuning / judging.")
             println("[q]uit to cancel. [↵] to confirm.")
             println("   $(rpad("Date", datewidth)) Identifier")
-            choice = request(term, ref_picker)
+            choice = request(ref_picker)
             if choice != -1
                 m.reference = identifiers[choice]
             end
