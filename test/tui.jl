@@ -3,10 +3,15 @@ using BenchmarkTools
 using PkgJogger
 using Example
 using Logging
+using Mocking
+Mocking.activate()
 
 import REPL
 
 include("utils.jl")
+
+include("fuzzer.jl")
+using .Fuzzer
 
 # fake_terminals was taken from Cthutu's FakeTerminals
 #   https://github.com/JuliaDebug/Cthulhu.jl/blob/master/test/FakeTerminals.jl
@@ -74,17 +79,6 @@ function enforce_exit(t::Task, timeout=1e-3)
     return exit_code == :ok
 end
 
-# Map keycodes to their unicode representation
-keydict = Dict(
-    :enter => "\r",
-    :left => "\x1b[D",
-    :right => "\x1b[C",
-    :up => "\x1b[A",
-    :down => "\x1b[B",
-    :ctrl_c => "\x03",
-    :ctrl_d => "\x04",
-)
-
 @testset "quit" begin
     jogger = @eval @jog Example
     fake_terminal() do term, input, output
@@ -141,60 +135,31 @@ end
     cleanup_example()
 end
 
-@testset "fuzz keyboard" begin
-    fuzz_duration = 5
+
+@testset "fuzz tui" begin
+    # Check that our mock is active
+    @testset "verify fuzzing" begin
+        @test_logs (:debug, "Fuzzing") min_level=Logging.Debug begin
+            apply(Fuzzer.patch_readbyte) do
+                REPL.TerminalMenus.readbyte(stdin)
+            end
+        end
+    end
+
     cleanup_example()
     jogger = @eval @jog Example
-
-    # Construct fuzzing alphabet
-    # - Remove characters that are expected to trigger exits
-    fuzz_alphabet = Set((string∘Char).(32:128))
-    union!(fuzz_alphabet, values(keydict))
-    delete!(fuzz_alphabet, "q")
-    delete!(fuzz_alphabet, keydict[:ctrl_c])
-    delete!(fuzz_alphabet, keydict[:ctrl_d])
-
-    # Simulate terminal with a stream of random keypresses
-    @info "Starting Fuzzing the TUI for $fuzz_duration seconds"
-    output, err = fake_terminal(; timeout = fuzz_duration*1.5) do term, input, output
-        t = @async PkgJogger.TUI.tui(jogger; term=term)
-        start_time = time()
-        n_chars = 0
-        @test istaskdone(t) == false
-
-        # Write random keypresses to the input stream and record the last 64 keypresses
-        # in a channel.
-        fuzz_history = Channel{String}(64)
-        function fuzz_terminal(c::Channel{String})
-            start_time = time()
-            while time() - start_time < fuzz_duration
-                char = rand(fuzz_alphabet)
-                length(c.data) >= c.sz_max && take!(c)
-                put!(c, char)
-                write(input, char)
-                yield()
-                sleep(1e-2)
-            end
+    fuzz_duration = 5
+    @info "Fuzzing PkgJogger's TUI for $fuzz_duration seconds"
+    start_time = time()
+    @testset "fuzzing" begin
+        t = Fuzzer.ui_fuzzer(fuzz_duration) do
+            PkgJogger.TUI.tui(jogger)
         end
-        fuzzer = @async fuzz_terminal(fuzz_history)
-        wait(fuzzer)
 
-        # Check that we're still running
-        if istaskdone(t)
-            fuzzed = []
-            while isready(fuzz_history)
-               push!(fuzzed, take!(fuzz_history))
-            end
-            @info "Fuzzed with" fuzzed runtime=time() - start_time
-            println("stdout:")
-            print(String(readavailable(output)))
-        end
-        @test istaskdone(t) == false
-
-        # Shutdown TUI
-        write(input, "q")
-        yield()
-        @test enforce_exit(t)
+        # Check that fuzzing didn't trigger an error
+        @test timedwait(() -> istaskdone(t), fuzz_duration*1.5) == :timed_out
+        @test time() - start_time >= fuzz_duration
+        kill(t)
     end
     @info "Finished Fuzzing the TUI"
     cleanup_example()
