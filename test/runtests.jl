@@ -11,10 +11,14 @@ using PkgJogger
         end
     end
 
-    # Load Example
+    # Load Example and ensure a clean initial state
     example_path = joinpath(@__DIR__, "Example.jl")
     if example_path ∉ LOAD_PATH
         push!(LOAD_PATH, example_path)
+    end
+    let
+        include("utils.jl")
+        cleanup_example()
     end
 
     # Run the rest of the unit testing suite
