@@ -38,16 +38,6 @@ function fake_terminal(f; timeout=60, options::REPL.Options=REPL.Options(confirm
     return output, err
 end
 
-function async_term(f, term::REPL.Terminals.TTYTerminal)
-    @async begin
-        redirect_stdout(term.out_stream) do
-            redirect_stderr(term.err_stream) do
-                f()
-            end
-        end
-    end
-end
-
 """
     Base.kill(t::Task)
 
@@ -138,64 +128,5 @@ end
     end
     @test occursin("An error was thrown while benchmarking", read(err, String))
     cleanup()
-    cleanup_example()
-end
-
-@testset "fuzz keyboard" begin
-    fuzz_duration = 5
-    cleanup_example()
-    jogger = @eval @jog Example
-
-    # Construct fuzzing alphabet
-    # - Remove characters that are expected to trigger exits
-    fuzz_alphabet = Set((string∘Char).(32:128))
-    union!(fuzz_alphabet, values(keydict))
-    delete!(fuzz_alphabet, "q")
-    delete!(fuzz_alphabet, keydict[:ctrl_c])
-    delete!(fuzz_alphabet, keydict[:ctrl_d])
-
-    # Simulate terminal with a stream of random keypresses
-    @info "Starting Fuzzing the TUI for $fuzz_duration seconds"
-    output, err = fake_terminal(; timeout = fuzz_duration*1.5) do term, input, output
-        t = @async PkgJogger.TUI.tui(jogger; term=term)
-        start_time = time()
-        n_chars = 0
-        @test istaskdone(t) == false
-
-        # Write random keypresses to the input stream and record the last 64 keypresses
-        # in a channel.
-        fuzz_history = Channel{String}(64)
-        function fuzz_terminal(c::Channel{String})
-            start_time = time()
-            while time() - start_time < fuzz_duration
-                char = rand(fuzz_alphabet)
-                length(c.data) >= c.sz_max && take!(c)
-                put!(c, char)
-                write(input, char)
-                yield()
-                sleep(1e-2)
-            end
-        end
-        fuzzer = @async fuzz_terminal(fuzz_history)
-        wait(fuzzer)
-
-        # Check that we're still running
-        if istaskdone(t)
-            fuzzed = []
-            while isready(fuzz_history)
-               push!(fuzzed, take!(fuzz_history))
-            end
-            @info "Fuzzed with" fuzzed runtime=time() - start_time
-            println("stdout:")
-            print(String(readavailable(output)))
-        end
-        @test istaskdone(t) == false
-
-        # Shutdown TUI
-        write(input, "q")
-        yield()
-        @test enforce_exit(t)
-    end
-    @info "Finished Fuzzing the TUI"
     cleanup_example()
 end
