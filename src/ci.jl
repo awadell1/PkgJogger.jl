@@ -200,6 +200,7 @@ Load benchmarking results from `filename`
 """
 function load_benchmarks(filename::AbstractString)
     # Decompress
+    !isfile(filename) && throw(InvalidIdentifier(filename))
     if endswith(filename, ".json.gz")
         @warn "Legacy `*.json.gz` format is deprecated, some features may not be supported"
         reader = JSON.parse
@@ -233,7 +234,15 @@ function load_benchmarks(trial_dir::AbstractString, uuid::UUIDs.UUID)
             return load_benchmarks(full_path)
         end
     end
-    error("Unable to find benchmarking results for $uuid in $trial_dir")
+    throw(InvalidIdentifier(uuid, "Looked in $trial_dir"))
+end
+
+# Return a list of all PkgJogger results files in a directory
+function list_benchmarks(dir)
+    isdir(dir) || return String[]
+    files = readdir(dir; join=true, sort=false)
+    r = filter(f -> any(e -> endswith(f, e), PKG_JOGGER_EXT), files)
+    return r
 end
 
 # Handle dispatch on a string from Jogger
@@ -245,28 +254,26 @@ function load_benchmarks(trial_dir, id::AbstractString)
 end
 
 # Handle dispatch on a Symbol
-load_benchmarks(trial_dir, s::Symbol) = load_benchmarks(trial_dir, Val(s))
-
-# Load the latest benchmarking results
-function load_benchmarks(trial_dir::AbstractString, ::Val{:latest})
-    files = list_benchmarks(trial_dir)
-    latest = argmax(mtime.(files))
-    return load_benchmarks(files[latest])
+function load_benchmarks(trial_dir, s::Symbol)
+    if s ===:latest
+        return __load_by_mtime(trial_dir, argmax, :latest)
+    elseif s === :oldest
+        return __load_by_mtime(trial_dir, argmin, :oldest)
+    else
+        throw(InvalidIdentifier(s, "Expected `:latest` or `:oldest`"))
+    end
 end
 
-# Loads the oldest benchmarking results
-function load_benchmarks(trial_dir::AbstractString, ::Val{:oldest})
-    files = list_benchmarks(trial_dir)
-    oldest = argmin(mtime.(files))
-    return load_benchmarks(files[oldest])
-end
+# All other types are an error
+load_benchmarks(trial_dir, id) = throw(InvalidIdentifier(id))
 
-function list_benchmarks(dir)
-    isdir(dir) || return String[]
-    files = readdir(dir; join=true, sort=false)
-    r = filter(f -> any(e -> endswith(f, e), PKG_JOGGER_EXT), files)
-    @assert !isempty(r) "No benchmarking results found in $dir"
-    return r
+function __load_by_mtime(trial_dir::AbstractString, f, id)
+    files = list_benchmarks(trial_dir)
+    if isempty(files)
+        throw(InvalidIdentifier(id, "No benchmarking results were found in $trial_dir"))
+    end
+    idx = f(mtime.(files))
+    return load_benchmarks(files[idx])
 end
 
 """
