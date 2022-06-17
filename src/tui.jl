@@ -215,7 +215,24 @@ function JoggerUI(jogger)
         :verbose => true,
         :reuse_tune => true,
     )
-    JoggerUI(jogger, menu, mode, mode, :latest, toggles, menu.pagesize, menu.pageoffset)
+
+    # Check that the reference benchmark exists
+    reference = _maybe_valid_id(jogger, :latest)
+
+    JoggerUI(jogger, menu, mode, mode, reference, toggles, menu.pagesize, menu.pageoffset)
+end
+
+function _maybe_valid_id(jogger, id)
+    try
+        jogger.load_benchmarks(reference)
+    catch e
+        if e isa PkgJogger.InvalidIdentifier
+            return nothing
+        else
+            rethrow()
+        end
+    end
+    return id
 end
 
 TerminalMenus.numoptions(m::JoggerUI) = TerminalMenus.numoptions(m.menu)
