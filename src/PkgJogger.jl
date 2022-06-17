@@ -32,6 +32,7 @@ const PKG_JOGGER_VER = VersionNumber(
     Base.parsed_toml(joinpath(@__DIR__, "..", "Project.toml"))["version"]
 )
 
+include("exceptions.jl")
 include("utils.jl")
 include("jogger.jl")
 include("ci.jl")
