@@ -28,7 +28,6 @@ using PkgJogger
     @safetestset "Locate Benchmarks" begin include("locate_benchmarks.jl") end
     @safetestset "Tuning Suites" begin include("tune.jl") end
     @safetestset "Backwards Compatibility" begin include("backward_compat.jl") end
-    @safetestset "TUI" begin include("tui.jl") end
     @safetestset "Doc Tests" begin
         using PkgJogger
         using Documenter
