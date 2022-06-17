@@ -193,3 +193,15 @@ function tune!(b::BenchmarkTools.Benchmark, ref; kwargs...)
     p = ref isa BenchmarkTools.Parameters ? ref : BenchmarkTools.params(ref)
     BenchmarkTools.loadparams!(b, p, :evals, :samples)
 end
+
+# Check if an entry for `key` exists in a BenchmarkGroup
+# like `haskey(g, key)`, but recurses into the BenchmarkGroup
+function hasbenchmark(g::BenchmarkTools.BenchmarkGroup, key::Array)
+    k = first(key)
+    haskey(g, k) || return false
+    if length(keys) == 1
+        return true
+    else
+        return hasbenchmark(g[k], key[2:end])
+    end
+end

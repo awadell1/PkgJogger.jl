@@ -67,12 +67,19 @@ TerminalMenus.pick(m::BenchmarkSelect, cursor::Int) = true
 TerminalMenus.cancel(m::BenchmarkSelect) = empty!(m.selected)
 TerminalMenus.numoptions(m::BenchmarkSelect) = TerminalMenus.numoptions(m.root) -1
 
-function TerminalMenus.selected(m::BenchmarkSelect)
-    s = BenchmarkGroup()
-    for k in m.selected
-        s[k] = deepcopy(m.benchmarks[k])
+"""
+    gf = filter_group(g::BenchmarkGroup, s::Set)
+
+Return a benchmark group `gf` with the intersection of keys from `g` and `s`
+"""
+function filter_group(g::BenchmarkTools.BenchmarkGroup, s::Set)
+    gf = BenchmarkGroup()
+    for k in values(s)
+        if PkgJogger.hasbenchmark(g, k)
+            gf[k] = g[k]
+        end
     end
-    return s
+    return gf
 end
 
 function TerminalMenus.writeline(buf::IO, m::BenchmarkSelect, cursor::Int, iscursor::Bool)
@@ -297,7 +304,7 @@ function tui(jogger; term=TerminalMenus.terminal)
             @info "Triggered Revise"
 
         elseif action == :benchmark
-            suite = TerminalMenus.selected(m.menu)
+            suite = filter_group(m.jogger.suite(), TerminalMenus.selected(m.menu))
             if isempty(suite)
                 @warn "No benchmarks selected"
             else
@@ -319,14 +326,25 @@ function tui(jogger; term=TerminalMenus.terminal)
             show(judgement[suite])
 
         elseif action == :review
+            local results
+            try
+                results = m.jogger.load_benchmarks(m.reference)["benchmarks"]
+            catch e
+                if e isa PkgJogger.InvalidIdentifier
+                    @info sprint(showerror, e)
+                    continue
+                else
+                    rethrow()
+                end
+            end
+
             choice = TerminalMenus.selected(m.menu)
             if isempty(choice)
                 @warn "No benchmarks selected"
                 continue
             end
-            results = m.jogger.load_benchmarks(m.reference)["benchmarks"]
             print("\n")
-            for (k, v) in leaves(results[choice])
+            for (k, v) in leaves(filter_group(results, choice))
                 println(join(k, " - "))
                 display(v)
                 println()
