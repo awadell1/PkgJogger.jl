@@ -14,10 +14,16 @@ Supported Benchmark Directories:
 - `PKG_DIR/benchmark`
 
 """
-benchmark_dir(pkg::Module) = benchmark_dir(Base.PkgId(pkg))
-benchmark_dir(pkg::Symbol) = benchmark_dir(Base.PkgId(string(pkg)))
+benchmark_dir(pkg::Module) = benchmark_dir(pkgdir(pkg))
+function benchmark_dir(pkg::Symbol)
+    pkg_id = Base.identify_package(string(pkg))
+    @assert !isnothing(pkg_id) "Could not identify the package: $pkg"
+    benchmark_dir(pkg_id)
+end
 function benchmark_dir(pkg_id::Base.PkgId)
-    pkg_dir = joinpath(dirname(Base.locate_package(pkg_id)), "..")
+    entry_point = Base.locate_package(pkg_id)
+    @assert !isnothing(entry_point) "Could not locate the package: $pkg_id"
+    pkg_dir = joinpath(entry_point, "..", "..")
     benchmark_dir(pkg_dir)
 end
 function benchmark_dir(pkg_dir::String)
@@ -25,14 +31,17 @@ function benchmark_dir(pkg_dir::String)
 end
 function benchmark_dir(pkg::Pkg.Types.PackageSpec)
     # Locate packages location from a PackageSpec
-    if pkg.path !== nothing
-        pkg_path = pkg.path
-    elseif pkg.repo.source !== nothing
-        pkg_path = pkg.repo.source
+    if !isnothing(pkg.path)
+        return benchmark_dir(pkg.path)
+    elseif !isnothing(pkg.repo.source)
+        return benchmark_dir(pkg.repo.source)
+    elseif ~isnothing(pkg.name) && ~isnothing(pkg.uuid)
+        return benchmark_dir(Base.PkgId(pkg.uuid, pkg.name))
+    elseif ~isnothing(pkg.name)
+        return benchmark_dir(Symbol(pkg.name))
     else
         error("Unable to locate $pkg")
     end
-    benchmark_dir(pkg_path)
 end
 
 """
