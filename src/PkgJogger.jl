@@ -1,6 +1,5 @@
 module PkgJogger
 
-using MacroTools
 using BenchmarkTools
 using CodecZlib
 using JSON

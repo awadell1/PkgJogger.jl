@@ -59,12 +59,9 @@ macro jog(pkg)
         push!(suite_expressions, suite_expr)
     end
 
-    # Flatten out modules into a Vector{Expr}
-    if !isempty(suite_modules)
-        suite_exp = getfield(MacroTools.flatten(quote $(suite_modules...) end), :args)
-    else
-        suite_exp = Expr[]
-    end
+    # Strip redundant quote blocks and flatten modules into a single single Vector{Expr}`
+    # This is needed to avoid wrapping module blocks in `begin .. end` blocks
+    suite_exp = mapreduce(Base.Fix2(getfield, :args), vcat, suite_modules)
 
     # String representation of the Jogger module for use in doc strings
     mod_str = string(modname)
