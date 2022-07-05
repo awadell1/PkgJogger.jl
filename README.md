@@ -60,6 +60,8 @@ Current Limitations:
 
 To get around the above, run `@jog PkgName` to get an updated jogger.
 
+> Note: Revise must be loaded first in order to track changes to your benchmark files.
+
 ## Continuous Benchmarking Baked In!
 
 Install PkgJogger, run benchmarks, and save results to a `*.bson.gz` with a
