@@ -8,6 +8,9 @@ Creates a module named `JogPkgName` for running benchmarks for `PkgName`.
 Most edits to benchmark files are correctly tracked by Revise.jl. If they are
 not, re-run `@jog PkgName` to fully reload `JogPkgName`.
 
+> Revise must be loaded before calling `@jog PkgName` in order for edits to be
+> automatically tracked.
+
 ## Methods
 
 - `suite`       Return a `BenchmarkGroup` of the benchmarks for `PkgName`
@@ -234,13 +237,24 @@ end
 Construct a module wrapping the BenchmarkGroup defined by `s::BenchModule`
 """
 function build_module(s::BenchModule)
+    # Generate a name for the benchmarking module
     modname = gensym(s.name[end])
+
+    # If Revise.jl has been loaded, use it to track changes to the
+    # benchmarking module. Otherwise, don't track changes.
+    revise_id = PkgId(UUID("295af30f-e4ad-537b-8983-00126c2a3abe"), "Revise")
+    if haskey(Base.loaded_modules, revise_id)
+        revise_exp = :( Base.loaded_modules[$revise_id].track($modname, $(s.filename)) )
+    else
+        revise_exp = :()
+    end
+
     module_expr = quote
         module $modname
             __revise_mode__ = :eval
             include($(s.filename))
         end
-        Revise.track($modname, $(s.filename))
+        $(revise_exp)
     end
 
     # Build Expression for accessing suite
