@@ -9,6 +9,9 @@ julia -e 'using Pkg; Pkg.add("PkgJogger"); using PkgJogger; PkgJogger.ci()'
 
 ## Github Actions
 
+Just add `uses: awadell1/PkgJogger` and you're set! For example, the following
+will setup julia, run the benchmarks and upload the results for later analysis:
+
 ```yaml
 name: PkgJogger
 on:
@@ -21,8 +24,7 @@ jobs:
         steps:
             - uses: actions/checkout@v2
             - uses: julia-actions/setup-julia@latest
-            - name: Run Benchmarks
-              run: julia -e 'using Pkg; Pkg.add("PkgJogger"); using PkgJogger; PkgJogger.ci()'
+            - uses: awadell1/PkgJogger
             - uses: actions/upload-artifact@v2
               with:
                 name: benchmarks
