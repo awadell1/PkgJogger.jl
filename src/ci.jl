@@ -20,10 +20,15 @@ function ci()
     project = Base.current_project()
     pkg_toml = Base.parsed_toml(project)
     pkg = Pkg.PackageSpec(
-        name=pkg_toml["name"],
-        uuid=pkg_toml["uuid"],
+        name=get(pkg_toml, "name", nothing),
+        uuid=get(pkg_toml, "uuid", nothing),
         path=dirname(project),
     )
+
+    # Check that name and uuid are defined in the project file
+    @assert !isnothing(pkg.name) && !isnothing(pkg.uuid) "Missing name and uuid in $(project)"
+    @assert !isnothing(pkg.name) "Missing name for package in $(project)"
+    @assert !isnothing(pkg.uuid) "Missing uuid for package in $(project)"
 
     # Run in sandbox
     pkgname = Symbol(pkg.name)
