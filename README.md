@@ -3,7 +3,7 @@
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://awadell1.github.io/PkgJogger.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://awadell1.github.io/PkgJogger.jl/dev)
 [![Build Status](https://github.com/awadell1/PkgJogger.jl/workflows/CI/badge.svg)](https://github.com/awadell1/PkgJogger.jl/actions)
-[![Coverage Status](https://coveralls.io/repos/github/awadell1/PkgJogger.jl/badge.svg?branch=coverage)](https://coveralls.io/github/awadell1/PkgJogger.jl?branch=coverage)
+[![Coverage Status](https://coveralls.io/repos/github/awadell1/PkgJogger.jl/badge.svg?branch=main)](https://coveralls.io/github/awadell1/PkgJogger.jl?branch=main)
 
 [![version](https://juliahub.com/docs/PkgJogger/version.svg)](https://juliahub.com/ui/Packages/PkgJogger/AaLEJ)
 [![pkgeval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/P/PkgJogger.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
