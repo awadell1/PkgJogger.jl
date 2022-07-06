@@ -33,6 +33,17 @@ jobs:
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  action:
+    name: Test Github action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/cache@v1
+      - uses: "./"
+        with:
+          prefix: "cd test/Example.jl &&"
+
   docs:
     name: Documentation
     runs-on: ubuntu-latest
