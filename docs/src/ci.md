@@ -24,7 +24,7 @@ jobs:
         steps:
             - uses: actions/checkout@v2
             - uses: julia-actions/setup-julia@latest
-            - uses: awadell1/PkgJogger
+            - uses: awadell1/PkgJogger.jl@latest
             - uses: actions/upload-artifact@v2
               with:
                 name: benchmarks
@@ -37,9 +37,9 @@ jobs:
 PkgJogger will create a temporary environment with the following:
 
 1) Activate a temporary Julia environment for benchmarking.
-    - If a Julia project file exists in `benchmark/`, it will be copied to the
-      temporary environment. Manifest files are currently ignored.
-    - Otherwise, an empty environment is created.
+   - If a Julia project file exists in `benchmark/`, it will be copied to the
+     temporary environment. Manifest files are currently ignored.
+   - Otherwise, an empty environment is created.
 2) Add the current project (via `Pkg.develop`) to the benchmarking environment
    and resolve dependencies using
    [`PRESEVE_NONE`](https://pkgdocs.julialang.org/v1/api/#Pkg.add).
