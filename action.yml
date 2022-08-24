@@ -19,12 +19,23 @@ inputs:
 runs:
   using: composite
   steps:
-    - id: install_pkgjogger
-      run: julia --color=yes --eval
+    - name: 🏃 Install PkgJogger
+      id: install_pkgjogger
+      run: >
+        PKG_JOGGER_ENV=$(mktemp --directory);
+        echo "::set-output name=env::$(echo $PKG_JOGGER_ENV)";
+        julia --color=yes --project="$PKG_JOGGER_ENV" --eval
         'using Pkg; Pkg.develop(name="PkgJogger", path="${{ github.action_path }}")'
       shell: bash
 
-    - id: run_benchmarks
-      run: ${{ inputs.prefix }} julia --color=yes ${{ inputs.options }} --eval
-        'using Pkg, PkgJogger; PkgJogger.ci()'
+    - name: ⏱ Run Benchmarks
+      id: run_benchmarks
+      run: >
+        ${{ inputs.prefix }} julia --project="${{ steps.install_pkgjogger.outputs.env }}" --color=yes
+        ${{ inputs.options }} --eval 'using PkgJogger; PkgJogger.ci()'
+      shell: bash
+
+    - name: 🧹 Cleanup PkgJogger
+      id: Cleanup
+      run: rm -rf "${{ steps.install_pkgjogger.outputs.env }}"
       shell: bash

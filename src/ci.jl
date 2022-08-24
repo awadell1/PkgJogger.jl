@@ -53,6 +53,7 @@ function sandbox(f, pkg)
     self = PackageSpec(
         name = JOGGER_PKGS[1].name,
         uuid = JOGGER_PKGS[1].uuid,
+        path = Base.pkgdir(PkgJogger),
     )
 
     # Locate benchmark project
