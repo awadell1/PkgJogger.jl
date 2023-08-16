@@ -72,6 +72,41 @@ end
 locate_benchmarks(pkg::Module) = benchmark_dir(pkg) |> locate_benchmarks
 
 """
+    getsuite(suite, [select...])
+
+Index into `suite` and return the matching entries in suite.
+At it's simplest, `getsuite(suite, "foo", "bar",...)` is the same as `suite["foo"]["bar"]...`
+
+# Supported Indices
+
+- `:` - Accepts any entry at that level in the tree
+- `r"Regexp"` - Accepts any entry matching the regular-expression
+- `key::Any` - Accepts any entry with a matching `key`
+- `@tagged` - Filters the suite to only include `BenchmarkGroup`s with a matching tag.
+  See [Indexing into a BenchmarkGroup using @tagged](https://juliaci.github.io/BenchmarkTools.jl/stable/manual/#Indexing-into-a-BenchmarkGroup-using-@tagged)
+
+!!! warning
+    An entry in `suite` must match all indices to be returned. For example,
+    `getsuite(s, :, "bar")` would exclude a benchmark at `s["bat"]` as
+    the benchmark isn't matched by **both** `:` and `"bar"`.
+"""
+getsuite(suite::BenchmarkGroup) = suite
+getsuite(suite::BenchmarkGroup, ::Colon) = suite
+getsuite(suite::BenchmarkGroup, r::Regex) = filter(!isnothing ∘ Base.Fix1(match, r) ∘ first, suite)
+getsuite(suite::BenchmarkGroup, f::BenchmarkTools.TagFilter) = suite[f]
+getsuite(::BenchmarkTools.Benchmark, ::Any) = nothing
+getsuite(suite::BenchmarkGroup, idx) = !haskey(suite, idx) ? BenchmarkGroup() : BenchmarkGroup(idx => suite[idx])
+function getsuite(suite::BenchmarkGroup, idx, rest...)
+    src = getsuite(suite, idx)
+    dst = similar(src)
+    for (k, v) in src
+        v = getsuite(v, rest...)
+        !isnothing(v) && !isempty(v) && setindex!(dst, v, k)
+    end
+    return dst
+end
+
+"""
     judge(new, old; metric=Statistics.median, kwargs...)
 
 Compares benchmarking results from `new` vs `old` for regressions/improvements
@@ -87,7 +122,7 @@ Effectively a convenience wrapper around `load_benchmarks` and `BenchmarkTools.j
 function judge(
     new::BenchmarkTools.BenchmarkGroup,
     old::BenchmarkTools.BenchmarkGroup;
-    metric = Statistics.median,
+    metric=Statistics.median,
     kwargs...
 )
     new_estimate = metric(new)
