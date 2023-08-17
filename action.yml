@@ -23,7 +23,7 @@ runs:
       id: install_pkgjogger
       run: >
         PKG_JOGGER_ENV=$(mktemp --directory);
-        echo "::set-output name=env::$(echo $PKG_JOGGER_ENV)";
+        echo "env=$PKG_JOGGER_ENV" >> $GITHUB_STATE
         julia --color=yes --project="$PKG_JOGGER_ENV" --eval
         'using Pkg; Pkg.develop(name="PkgJogger", path="${{ github.action_path }}")'
       shell: bash
