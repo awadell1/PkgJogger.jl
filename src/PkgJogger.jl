@@ -10,6 +10,7 @@ using Dates
 using LibGit2
 using Statistics
 using Test
+using Profile
 
 export @jog, @test_benchmarks
 
@@ -30,6 +31,7 @@ const PKG_JOGGER_VER = VersionNumber(
 )
 
 include("utils.jl")
+include("profile.jl")
 include("jogger.jl")
 include("ci.jl")
 

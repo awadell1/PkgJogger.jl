@@ -240,6 +240,41 @@ macro jog(pkg)
         _get_benchmarks(b::Dict) = PkgJogger._get_benchmarks(b)
         _get_benchmarks(b::BenchmarkTools.BenchmarkGroup) = b
 
+        """
+            profile(select...; profiler=:cpu, verbose=false, ref=nothing, kwargs...)
+
+        Profile the benchmarking suite using the given `profiler`, the benchmark is
+        warmed up, tuned and then ran under the profile.
+
+        Like [`$($mod_str).benchmark`](@ref), `ref` can be used to reuse the results
+        of a prior run during tuning.
+
+        Some profilers support additional keyword arguments, see below for details.
+
+        !!! info
+            At this time, `PkgJogger` only supports profiling a single benchmark
+            at a time. Automated saving is not supported.
+
+        # Available Profilers
+        The following profilers are currently supported. Additional profilers
+        are available via package extensions.
+
+
+        $(@doc PkgJogger.profile)
+
+        ---
+
+        !!! info
+            This list was generated on jogger creation (`@jog $($pkg)`),
+            and my not reflect all loaded extensions. See [`PkgJogger.profile`](@ref)
+            or regenerate the jogger for additional information
+
+        """
+        function profile(select...; profiler::Symbol=:cpu, kwargs...)
+            s = suite(select...)
+            PkgJogger.profile(s, profiler; kwargs...)
+        end
+
         end
     end
 end
