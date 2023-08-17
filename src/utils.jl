@@ -71,24 +71,12 @@ function locate_benchmarks(path, name=String[])
 end
 locate_benchmarks(pkg::Module) = benchmark_dir(pkg) |> locate_benchmarks
 
+_SELECT_DOCS = """
+"""
 """
     getsuite(suite, [select...])
 
-Index into `suite` and return the matching entries in suite.
-At it's simplest, `getsuite(suite, "foo", "bar",...)` is the same as `suite["foo"]["bar"]...`
-
-# Supported Indices
-
-- `:` - Accepts any entry at that level in the tree
-- `r"Regexp"` - Accepts any entry matching the regular-expression
-- `key::Any` - Accepts any entry with a matching `key`
-- `@tagged` - Filters the suite to only include `BenchmarkGroup`s with a matching tag.
-  See [Indexing into a BenchmarkGroup using @tagged](https://juliaci.github.io/BenchmarkTools.jl/stable/manual/#Indexing-into-a-BenchmarkGroup-using-@tagged)
-
-!!! warning
-    An entry in `suite` must match all indices to be returned. For example,
-    `getsuite(s, :, "bar")` would exclude a benchmark at `s["bat"]` as
-    the benchmark isn't matched by **both** `:` and `"bar"`.
+$(_SELECT_DOCS)
 """
 getsuite(suite::BenchmarkGroup) = suite
 getsuite(suite::BenchmarkGroup, ::Colon) = suite

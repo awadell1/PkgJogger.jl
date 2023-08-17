@@ -146,7 +146,6 @@ macro jog(pkg)
         """
         function benchmark(select...; verbose=false, save=false, ref=nothing)
             s = suite(select...)
-            BenchmarkTools.warmup(s; verbose)
             __tune!(s, ref; verbose=verbose)
             results = BenchmarkTools.run(s; verbose=verbose)
             if save
