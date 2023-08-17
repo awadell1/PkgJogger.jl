@@ -23,12 +23,12 @@ runs:
       id: install_pkgjogger
       run: >
         PKG_JOGGER_ENV=$(mktemp --directory);
-        echo "env=$PKG_JOGGER_ENV" >> $GITHUB_STATE;
+        echo "env=$(echo $PKG_JOGGER_ENV)" >> $GITHUB_STATE;
         julia --color=yes --project="$PKG_JOGGER_ENV" --eval
         'using Pkg; Pkg.develop(name="PkgJogger", path="${{ github.action_path }}")'
       shell: bash
 
-    - name: ⏱ Run Benchmarks
+    - name: ⏱  Run Benchmarks
       id: run_benchmarks
       run: >
         ${{ inputs.prefix }} julia --project="${{ steps.install_pkgjogger.outputs.env }}" --color=yes
