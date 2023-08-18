@@ -1,7 +1,7 @@
 name = "PkgJogger"
 uuid = "10150987-6cc1-4b76-abee-b1c1cbd91c01"
 authors = ["Alexius Wadell <awadell@gmail.com> and contributors"]
-version = "0.4.1"
+version = "0.4.2"
 
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
