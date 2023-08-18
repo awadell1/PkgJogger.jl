@@ -274,4 +274,3 @@ function list_benchmarks(dir)
     @assert !isempty(r) "No benchmarking results found in $dir"
     return r
 end
-
