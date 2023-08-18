@@ -78,10 +78,15 @@ If it was located in a subdirectory `benchmark/bench_subdir` the resulting suite
 would have keys of `["bench_subdir", "bench_filename.jl", ...]`, instead of
 `["bench_filename.jl", ...]`. as shown.
 
-> A side effect of this structure is that each benchmarking file is self-contained
-> and independent of other benchmarking files. This means that if you want to
-> run the suite of a single file, you can `include` the file and run it with:
-> `tune!(suite); run(suite)`
+!!! tip
+    The upside of this structure is each benchmark file is self-contained
+    and independent of other benchmarking files. For example:
+
+    ```julia
+    include("benchmark/bench_filename.jl")
+    tune!(suite)
+    run(suite)
+    ```
 
 ## Jogger Reference
 

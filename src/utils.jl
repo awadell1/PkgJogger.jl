@@ -80,14 +80,14 @@ using `metric` as a basis. Additional `kwargs` are passed to `BenchmarkTools.jud
 Effectively a convenience wrapper around `load_benchmarks` and `BenchmarkTools.judge`
 
 `new` and `old` can be any one of the following:
-    - Filename of benchmarking results saved by PkgJogger
-    - A `Dict` as returned by [`PkgJogger.load_benchmarks(filename)`](@ref)
-    - A `BenchmarkTools.BenchmarkGroup` with benchmarking results
+- Filename of benchmarking results saved by PkgJogger
+- A `Dict` as returned by [`PkgJogger.load_benchmarks(filename)`](@ref)
+- A `BenchmarkTools.BenchmarkGroup` with benchmarking results
 """
 function judge(
     new::BenchmarkTools.BenchmarkGroup,
     old::BenchmarkTools.BenchmarkGroup;
-    metric = Statistics.median,
+    metric=Statistics.median,
     kwargs...
 )
     new_estimate = metric(new)
@@ -173,9 +173,9 @@ results from the reference BenchmarkGroup, by copying over all benchmark paramet
 
 This can reduce benchmarking runtimes significantly by only tuning new benchmarks. But does
 ignore the following:
-    - Changes to benchmarking parameters (ie. memory_tolerance) between `group` and `ref`
-    - Significant changes in performance, such that re-tunning is warranted
-    - Other changes (ie. changing machines), such that re-tunning is warranted
+- Changes to benchmarking parameters (ie. memory_tolerance) between `group` and `ref`
+- Significant changes in performance, such that re-tunning is warranted
+- Other changes (ie. changing machines), such that re-tunning is warranted
 """
 function tune!(group::BenchmarkTools.BenchmarkGroup, ref::BenchmarkTools.BenchmarkGroup; pad="", kwargs...)
     for (k, v) in group
