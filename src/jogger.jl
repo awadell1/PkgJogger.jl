@@ -69,160 +69,152 @@ macro jog(pkg)
     # Generate Module for Jogging pkg
     quote
         @eval module $modname
-            using $pkg
-            $(using_statements...)
+        using $pkg
+        $(using_statements...)
 
-            # Set Revise Mode and put submodules here
-            __revise_mode__ = :eval
-            $(suite_exp...)
+        # Set Revise Mode and put submodules here
+        __revise_mode__ = :eval
+        $(suite_exp...)
 
-            """
-            BENCHMARK_DIR
+        """
+        BENCHMARK_DIR
 
-            Directory of benchmarks for $($pkg)
-            """
-            const BENCHMARK_DIR = $bench_dir
+        Directory of benchmarks for $($pkg)
+        """
+        const BENCHMARK_DIR = $bench_dir
 
-            """
-                suite()::BenchmarkGroup
+        """
+            suite()::BenchmarkGroup
 
-            The BenchmarkTools suite for $($pkg)
-            """
-            function suite()
-                suite = BenchmarkTools.BenchmarkGroup()
-                $(suite_expressions...)
-                suite
+        The BenchmarkTools suite for $($pkg)
+        """
+        function suite()
+            suite = BenchmarkTools.BenchmarkGroup()
+            $(suite_expressions...)
+            suite
+        end
+
+        """
+            benchmark(; verbose = false, save = false, ref = nothing)
+
+        Warmup, tune and run the benchmarking suite for $($pkg).
+
+        If `save = true`, will save the results using [`$($mod_str).save_benchmarks`](@ref)
+        and display the filename using `@info`.
+
+        To reuse prior tuning results set `ref` to a BenchmarkGroup or suitable identifier
+        for [`$($mod_str).load_benchmarks`](@ref). See [`PkgJogger.tune!`](@ref) for
+        more information about re-using tuning results.
+        """
+        function benchmark(; verbose=false, save=false, ref=nothing)
+            s = suite()
+            BenchmarkTools.warmup(s; verbose)
+            PkgJogger.tune!(s, load_benchmarks(ref); verbose)
+            results = BenchmarkTools.run(s; verbose=verbose)
+            if save
+                filename = save_benchmarks(results)
+                @info "Saved results to $filename"
             end
+            return results
+        end
 
-            # Dispatch calls to tune! here so we can use the jogger variant of load_benchmarks
-            __tune!(group::BenchmarkTools.BenchmarkGroup, ref::BenchmarkTools.BenchmarkGroup; kwargs...) = PkgJogger.tune!(group, ref; kwargs...)
-            __tune!(group::BenchmarkTools.BenchmarkGroup, ref; kwargs...) = PkgJogger.tune!(group, load_benchmarks(ref); kwargs...)
-            __tune!(group::BenchmarkTools.BenchmarkGroup, ::Nothing; kwargs...) = BenchmarkTools.tune!(group; kwargs...)
+        """
+            run(args...; verbose::Bool = false, kwargs)
 
-            """
-                benchmark(; verbose = false, save = false, ref = nothing)
+        Run the benchmarking suite for $($pkg). See
+        [`BenchmarkTools.run`](https://juliaci.github.io/BenchmarkTools.jl/stable/reference/#Base.run)
+        for more options
+        """
+        function run(args...; verbose=false, kwargs...)
+            BenchmarkTools.run(suite(), args...; verbose=verbose, kwargs...)
+        end
 
-            Warmup, tune and run the benchmarking suite for $($pkg).
+        """
+            warmup(; verbose::Bool = false)
 
-            If `save = true`, will save the results using [`$($mod_str).save_benchmarks`](@ref)
-            and display the filename using `@info`.
+        Warmup the benchmarking suite for $($pkg)
+        """
+        function warmup(; verbose=false)
+            BenchmarkTools.warmup(suite(); verbose)
+        end
 
-            To reuse prior tuning results set `ref` to a BenchmarkGroup or suitable identifier
-            for [`$($mod_str).load_benchmarks`](@ref). See [`PkgJogger.tune!`](@ref) for
-            more information about re-using tuning results.
-            """
-            function benchmark(; verbose = false, save = false, ref = nothing)
-                s = suite()
-                BenchmarkTools.warmup(s; verbose)
-                __tune!(s, ref; verbose = verbose)
-                results = BenchmarkTools.run(s; verbose = verbose)
-                if save
-                    filename = save_benchmarks(results)
-                    @info "Saved results to $filename"
-                end
-                return results
-            end
+        """
+            save_benchmarks(results::BenchmarkGroup)::String
 
-            """
-                run(args...; verbose::Bool = false, kwargs)
+        Saves benchmarking results for $($pkg) to `BENCHMARK_DIR/trial/uuid4().bson.gz`,
+        and returns the path to the saved results
 
-            Run the benchmarking suite for $($pkg). See
-            [`BenchmarkTools.run`](https://juliaci.github.io/BenchmarkTools.jl/stable/reference/#Base.run)
-            for more options
-            """
-            function run(args...; verbose = false, kwargs...)
-                BenchmarkTools.run(suite(), args...; verbose = verbose, kwargs...)
-            end
+        > Meta Data such as cpu load, time stamp, etc. are collected on save, not during
+        > benchmarking. For representative metadata, results should be saved immediately
+        > after benchmarking.
 
-            """
-                warmup(; verbose::Bool = false)
+        Results can be loaded with [`PkgJogger.load_benchmarks`](@ref) or
+        [`$($mod_str).load_benchmarks`](@ref)
 
-            Warmup the benchmarking suite for $($pkg)
-            """
-            function warmup(; verbose = false)
-                BenchmarkTools.warmup(suite(); verbose)
-            end
+        ## Example
 
-            """
-                save_benchmarks(results::BenchmarkGroup)::String
+        Running a benchmark suite and then saving the results
 
-            Saves benchmarking results for $($pkg) to `BENCHMARK_DIR/trial/uuid4().bson.gz`,
-            and returns the path to the saved results
+        ```julia
+        r = $($mod_str).benchmark()
+        filename = $($mod_str).save_benchmarks(r)
+        ```
 
-            > Meta Data such as cpu load, time stamp, etc. are collected on save, not during
-            > benchmarking. For representative metadata, results should be saved immediately
-            > after benchmarking.
+        > Equivalently: `$($mod_str).benchmark(; save = true)`
 
-            Results can be loaded with [`PkgJogger.load_benchmarks`](@ref) or
-            [`$($mod_str).load_benchmarks`](@ref)
+        """
+        function save_benchmarks(results)
+            filename = joinpath(BENCHMARK_DIR, "trial", "$(UUIDs.uuid4()).bson.gz")
+            PkgJogger.save_benchmarks(filename, results)
+            filename
+        end
 
-            ## Example
+        """
+            load_benchmarks(id)::Dict
 
-            Running a benchmark suite and then saving the results
+        Loads benchmarking results for $($pkg) from `BENCHMARK_DIR/trial` based on `id`.
+        The following are supported `id` types:
 
-            ```julia
-            r = $($mod_str).benchmark()
-            filename = $($mod_str).save_benchmarks(r)
-            ```
+        - `filename::String`: Loads results from `filename`
+        - `uuid::Union{String, UUID}`: Loads results with the given UUID
+        - `:latest` loads the latest (By mtime) results from `BENCHMARK_DIR/trial`
+        - `:oldest` loads the oldest (By mtime) results from `BENCHMARK_DIR/trial`
+        """
+        load_benchmarks(id) = PkgJogger.load_benchmarks(joinpath(BENCHMARK_DIR, "trial"), id)
 
-            > Equivalently: `$($mod_str).benchmark(; save = true)`
+        """
+            judge(new, old; metric=Statistics.median, kwargs...)
 
-            """
-            function save_benchmarks(results)
-                filename = joinpath(BENCHMARK_DIR, "trial", "$(UUIDs.uuid4()).bson.gz")
-                PkgJogger.save_benchmarks(filename, results)
-                filename
-            end
+        Compares benchmarking results from `new` vs `old` for regressions/improvements
+        using `metric` as a basis. Additional `kwargs` are passed to `BenchmarkTools.judge`
 
-            """
-                load_benchmarks(id)::Dict
+        Identical to [`PkgJogger.judge`](@ref), but accepts any identifier supported by
+        [`$($mod_str).load_benchmarks`](@ref)
 
-            Loads benchmarking results for $($pkg) from `BENCHMARK_DIR/trial` based on `id`.
-            The following are supported `id` types:
+        ## Examples
 
-                - `filename::String`: Loads results from `filename`
-                - `uuid::Union{String, UUID}`: Loads results with the given UUID
-                - `:latest` loads the latest (By mtime) results from `BENCHMARK_DIR/trial`
-                - `:oldest` loads the oldest (By mtime) results from `BENCHMARK_DIR/trial`
-            """
-            load_benchmarks(id) = PkgJogger.load_benchmarks(joinpath(BENCHMARK_DIR, "trial"), id)
+        ```julia
+        # Judge the latest results vs. the oldest
+        $($mod_str).judge(:latest, :oldest)
+        [...]
+        ```
 
-            """
-                judge(new, old; metric=Statistics.median, kwargs...)
+        ```julia
+        # Judge results by UUID
+        $($mod_str).judge("$(UUIDs.uuid4())", "$(UUIDs.uuid4())")
+        [...]
+        ```
 
-            Compares benchmarking results from `new` vs `old` for regressions/improvements
-            using `metric` as a basis. Additional `kwargs` are passed to `BenchmarkTools.judge`
+        ```julia
+        # Judge using the minimum, instead of the median, time
+        $($mod_str).judge("path/to/results.bson.gz", "$(UUIDs.uuid4())"; metric=minimum)
+        [...]
+        ```
 
-            Identical to [`PkgJogger.judge`](@ref), but accepts any identifier supported by
-            [`$($mod_str).load_benchmarks`](@ref)
-
-            ## Examples
-
-            ```julia
-            # Judge the latest results vs. the oldest
-            $($mod_str).judge(:latest, :oldest)
-            [...]
-            ```
-
-            ```julia
-            # Judge results by UUID
-            $($mod_str).judge("$(UUIDs.uuid4())", "$(UUIDs.uuid4())")
-            [...]
-            ```
-
-            ```julia
-            # Judge using the minimum, instead of the median, time
-            $($mod_str).judge("path/to/results.bson.gz", "$(UUIDs.uuid4())"; metric=minimum)
-            [...]
-            ```
-
-            """
-            function judge(new, old; kwargs...)
-                PkgJogger.judge(_get_benchmarks(new), _get_benchmarks(old); kwargs...)
-            end
-            _get_benchmarks(b) = load_benchmarks(b)
-            _get_benchmarks(b::Dict) = PkgJogger._get_benchmarks(b)
-            _get_benchmarks(b::BenchmarkTools.BenchmarkGroup) = b
+        """
+        function judge(new, old; kwargs...)
+            PkgJogger.judge(load_benchmarks(new), load_benchmarks(old); kwargs...)
+        end
 
         end
     end
@@ -241,15 +233,15 @@ function build_module(s::BenchModule)
     # benchmarking module. Otherwise, don't track changes.
     revise_id = PkgId(UUID("295af30f-e4ad-537b-8983-00126c2a3abe"), "Revise")
     if haskey(Base.loaded_modules, revise_id)
-        revise_exp = :( Base.loaded_modules[$revise_id].track($modname, $(s.filename)) )
+        revise_exp = :(Base.loaded_modules[$revise_id].track($modname, $(s.filename)))
     else
         revise_exp = :()
     end
 
     module_expr = quote
         module $modname
-            __revise_mode__ = :eval
-            include($(s.filename))
+        __revise_mode__ = :eval
+        include($(s.filename))
         end
         $(revise_exp)
     end

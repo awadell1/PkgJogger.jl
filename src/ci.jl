@@ -250,8 +250,10 @@ function load_benchmarks(trial_dir, id::AbstractString)
     return load_benchmarks(trial_dir, uuid)
 end
 
-# Handle dispatch on a Symbol
+# Handle Jogger-specific dispatches
 load_benchmarks(trial_dir, s::Symbol) = load_benchmarks(trial_dir, Val(s))
+load_benchmarks(::Any, s) = _get_benchmarks(s)
+load_benchmarks(::Any, ::Nothing) = nothing
 
 # Load the latest benchmarking results
 function load_benchmarks(trial_dir::AbstractString, ::Val{:latest})

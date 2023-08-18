@@ -103,10 +103,7 @@ end
 # Internal functions to handle extracting benchmark results from various types
 _get_benchmarks(b::BenchmarkTools.BenchmarkGroup) = b
 _get_benchmarks(filename::AbstractString) = _get_benchmarks(load_benchmarks(filename))
-function _get_benchmarks(b::Dict)
-    @assert haskey(b, "benchmarks") "Missing 'benchmarks' key in $b"
-    return b["benchmarks"]::BenchmarkTools.BenchmarkGroup
-end
+_get_benchmarks(b::Dict) = b["benchmarks"]
 
 """
     test_benchmarks(s::BenchmarkGroup)
