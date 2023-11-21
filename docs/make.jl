@@ -19,11 +19,14 @@ DocMeta.setdocmeta!(PkgJogger, :DocTestSetup, :(using PkgJogger); recursive=true
 index_md = joinpath(@__DIR__, "src", "index.md")
 readme_md = joinpath(@__DIR__, "..", "README.md")
 open(index_md, "w") do io
-    write(io, """
-    ```@meta
-    EditURL = "$readme_md"
-    ```
-    """)
+    write(
+        io,
+        """
+```@meta
+EditURL = "$readme_md"
+```
+"""
+    )
     write(io, read(readme_md, String))
 end
 
@@ -36,16 +39,16 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://awadell1.github.io/PkgJogger.jl",
         assets=String[],
-        analytics = "G-V9E0Q8BDHR",
+        analytics="G-V9E0Q8BDHR",
     ),
     pages=[
         "Home" => "index.md",
         "Jogger" => "jogger.md",
         "Saving Results" => "io.md",
         "Continuous Benchmarking" => "ci.md",
+        "Profiling" => "profiling.md",
         "Reference" => "reference.md",
     ],
-    strict=true,
 )
 
 deploydocs(;
