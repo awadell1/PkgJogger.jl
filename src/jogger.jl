@@ -264,10 +264,17 @@ macro jog(pkg)
             At this time, `PkgJogger` only supports profiling a single benchmark
             at a time. Automated saving is not supported.
 
-        # Available Profilers
-        The following profilers are currently supported. Additional profilers
-        are available via package extensions.
+        ## Available Profilers
+        The following profilers have been implemented, but may not be currently
+        loaded (See [Loaded Profilers](#loaded-profilers)).
 
+        - `:cpu` - loaded by default
+        - `:allocs` - loaded if `Profile.Allocs` exists (>=v1.8)
+        - `:cuda` - loaded if the CUDA and NVTX packages are loaded
+
+        ## Loaded Profilers
+        The following profilers are currently loaded. Additional profilers
+        are available via package extensions.
 
         $(@doc PkgJogger.profile)
 

@@ -83,6 +83,17 @@ would have keys of `["bench_subdir", "bench_filename.jl", ...]`, instead of
 > run the suite of a single file, you can `include` the file and run it with:
 > `tune!(suite); run(suite)`
 
+## Filtering Benchmarks
+Often it's useful to run only a subset of the full benchmarking suite.
+For example, to run only the benchmarks within `benchmark/bench_filename.jl`:
+`JogExample.run("bench_filename")`.
+
+Most jogger functions support filtering ([`judge`](@ref JogExample.judge) is a notable exception).
+Greater support is planned.
+
+!!! compat PkgJogger 0.6.0
+    Support for filtering via [`JogExample.suite`](@ref) was added in v0.6.0
+
 ## Jogger Reference
 
 Jogger modules provide helper methods for working with their package's
@@ -93,6 +104,7 @@ Example`.
 JogExample.suite
 JogExample.benchmark
 JogExample.run
+JogExample.profile
 JogExample.save_benchmarks
 JogExample.load_benchmarks
 JogExample.judge
