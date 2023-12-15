@@ -3,3 +3,6 @@ BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Example = "4b09cd0b-9172-4840-a79f-b48550c7f881"
 PkgJogger = "10150987-6cc1-4b76-abee-b1c1cbd91c01"
+
+[compat]
+Documenter = "1.2"
