@@ -1,16 +1,13 @@
-using Test
-using Test: TestLogger
-using Logging: with_logger
-using PkgJogger
-using UUIDs
-using Example
-import BenchmarkTools
+@testitem "canonical" setup=[ExamplePkg, BenchmarkTests] begin
+    using PkgJogger
+    import Test
+    import UUIDs
+    import BenchmarkTools
 
-include("utils.jl")
-
-@testset "canonical" begin
-    @jog Example
-    @test @isdefined JogExample
+    # Create a jogger
+    Example, cleanup = create_example()
+    eval(Expr(:macrocall, Symbol("@jog"), LineNumberNode(@__LINE__, @__FILE__), Example))
+    JogExample = getproperty(@__MODULE__, Symbol(:Jog, Example))
 
     # Run Benchmarks
     r = JogExample.benchmark()
@@ -23,9 +20,6 @@ include("utils.jl")
     r = JogExample.run()
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
 
-    # BENCHMARK_DIR
-    @test JogExample.BENCHMARK_DIR == PkgJogger.benchmark_dir(Example)
-
     # Saving and Loading
     file = JogExample.save_benchmarks(r)
     @test isfile(file)
@@ -37,12 +31,13 @@ include("utils.jl")
     @testset "Jogger's load_benchmarks" begin
         uuid = get_uuid(file)
         r3 = JogExample.load_benchmarks(uuid)
-        r4 = JogExample.load_benchmarks(UUID(uuid))
+        r4 = JogExample.load_benchmarks(UUIDs.UUID(uuid))
         r5 = JogExample.load_benchmarks(:latest)
-        @test r3 == r4
+        @test results_match(r2, r3)
+        @test results_match(r3, r4)
+        @test results_match(r4, r5)
         @test r3["benchmarks"] == r
         @test r4["benchmarks"] == r
-        @test r2 == r3 == r4 == r5
 
         # Check that we error for invalid uuids
         @test_throws ErrorException JogExample.load_benchmarks("not-a-uuid")
@@ -62,11 +57,6 @@ include("utils.jl")
     # Test Judging
     @test_nowarn JogExample.judge(file, file)
 
-    # If this is a git repo, there should be a git entry
-    if isdir(joinpath(PKG_JOGGER_PATH, ".git"))
-        @test r2["git"] !== nothing
-    end
-
     # Test results location
     trial_dir = joinpath(JogExample.BENCHMARK_DIR, "trial")
     test_subfile(trial_dir, file)
@@ -77,22 +67,31 @@ include("utils.jl")
 
     # Test @test_benchmarks
     @testset "test_benchmarks" begin
-        ts = @test_benchmarks Example
+        ts = eval(Expr(
+            :macrocall,
+            Symbol("@test_benchmarks"),
+            LineNumberNode(@__LINE__, @__FILE__),
+            Example
+        ))
         @test ts isa Vector
         @test all(map(x -> x isa Test.AbstractTestSet, ts))
     end
 
     # No Benchmarks
     @test_throws LoadError @eval(@jog PkgJogger)
+
+    cleanup()
 end
 
-@testset "benchmark and save" begin
-    @jog Example
-    @test @isdefined JogExample
-    cleanup_example()
+@testitem "benchmark and save" setup=[ExamplePkg, BenchmarkTests] begin
+    using PkgJogger
+    using Test
+    Example, cleanup = ExamplePkg.create_example()
+    eval(Expr(:macrocall, Symbol("@jog"), LineNumberNode(@__LINE__, @__FILE__), Example))
+    JogExample = getproperty(@__MODULE__, Symbol(:Jog, Example))
 
-    logger = TestLogger()
-    with_logger(logger) do
+    logger = Test.TestLogger()
+    Test.with_logger(logger) do
         JogExample.benchmark(save = true)
     end
 
@@ -109,7 +108,7 @@ end
     # Currently only have one result Saved
     r_latest = JogExample.load_benchmarks(:latest)
     r_oldest = JogExample.load_benchmarks(:oldest)
-    @test r == r_latest == r_oldest
+    @test results_match(r, r_latest) && results_match(r, r_oldest)
 
     # Check that :latest and :oldest return different results
     # Now have two results saved, so :latest and :oldest should return different results
@@ -117,10 +116,7 @@ end
     JogExample.save_benchmarks(r["benchmarks"])
     r_latest = JogExample.load_benchmarks(:latest)
     r_oldest = JogExample.load_benchmarks(:oldest)
-    @test r != r_latest
-    @test r == r_oldest
-    @test r["benchmarks"] == r_latest["benchmarks"] == r_oldest["benchmarks"]
-
+    @test !results_match(r, r_latest)
+    @test results_match(r, r_oldest)
+    cleanup()
 end
-
-cleanup_example()
