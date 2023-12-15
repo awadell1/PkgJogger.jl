@@ -12,7 +12,6 @@ jobs:
       matrix:
         version:
           - '*'     # Latest Release
-          - '~1.6'  # Current LTS
         os:
           - ubuntu-latest
           - windows-latest
