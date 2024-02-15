@@ -45,7 +45,7 @@ makedocs(;
         "Continuous Benchmarking" => "ci.md",
         "Reference" => "reference.md",
     ],
-    strict=true,
+    checkdocs=:all,
 )
 
 deploydocs(;

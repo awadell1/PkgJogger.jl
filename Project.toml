@@ -20,8 +20,19 @@ BSON = "0.3"
 BenchmarkTools = "1"
 CodecZlib = "0.7"
 JSON = "0.21"
+Pkg = "1.9"
 Revise = "3"
-julia = "1.6"
+Statistics = "1.9"
+julia = "1.9"
 
 [extras]
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+ReTestItems = "817f1d60-ba6b-4fd5-9520-3cf149f6a823"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
+
+[targets]
+test = ["Test", "ReTestItems", "Revise", "UUIDs", "TOML", "Random", "Pkg"]
