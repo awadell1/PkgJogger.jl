@@ -1,6 +1,7 @@
 # Setup the Documenter environment
 using Pkg
 Pkg.activate(@__DIR__)
+Pkg.Registry.update()
 Pkg.develop([
     PackageSpec(path=joinpath(@__DIR__, "..")),
     PackageSpec(path=joinpath(@__DIR__, "..", "test", "Example.jl"))
