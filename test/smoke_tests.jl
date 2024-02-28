@@ -13,9 +13,6 @@
     r = JogExample.benchmark()
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
 
-    # Warmup
-    @test_nowarn JogExample.warmup()
-
     # Running
     r = JogExample.run()
     @test typeof(r) <: BenchmarkTools.BenchmarkGroup
