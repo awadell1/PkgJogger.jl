@@ -23,7 +23,7 @@ runs:
       id: install_pkgjogger
       run: >
         julia --color=yes --eval
-        'using Pkg; Pkg.develop(PackageSpec(; name="PkgJogger", path="${{ github.action_path }}"))'
+        'using Pkg; Pkg.Registry.update(); Pkg.develop(PackageSpec(; name="PkgJogger", path="${{ github.action_path }}"))'
       shell: bash
 
     - name: ⏱  Run Benchmarks
