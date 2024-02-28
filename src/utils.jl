@@ -125,7 +125,7 @@ function test_benchmarks(name, s::BenchmarkTools.BenchmarkGroup)
 end
 function test_benchmarks(name, b::BenchmarkTools.Benchmark)
     @testset "$name" begin
-        run(b; verbose=false, samples=1, evals=1, gctrial=false, gcsample=false)
+        b.samplefunc(b.quote_vals, BenchmarkTools.Parameters(b.params; evals=1))
         @test true
     end
 end

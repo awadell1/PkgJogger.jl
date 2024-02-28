@@ -1,7 +1,7 @@
 name = "PkgJogger"
 uuid = "10150987-6cc1-4b76-abee-b1c1cbd91c01"
 authors = ["Alexius Wadell <awadell@gmail.com> and contributors"]
-version = "0.4.2"
+version = "0.5.0"
 
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
@@ -17,7 +17,7 @@ UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [compat]
 BSON = "0.3"
-BenchmarkTools = "1"
+BenchmarkTools = "1.5"
 CodecZlib = "0.7"
 JSON = "0.21"
 Pkg = "1.9"

@@ -16,7 +16,6 @@ not, re-run `@jog PkgName` to fully reload `JogPkgName`.
 - `suite`       Return a `BenchmarkGroup` of the benchmarks for `PkgName`
 - `benchmark`   Warmup, tune and run the suite
 - `run`         Dispatch to `BenchmarkTools.run(suite(), args...; kwargs...)`
-- `warmup`      Dispatch to `BenchmarkTools.warmup(suite(), args...; kwargs...)`
 - `save_benchmarks`     Save benchmarks for `PkgName` using an unique filename
 
 ## Isolated Benchmarks
@@ -113,7 +112,6 @@ macro jog(pkg)
             """
             function benchmark(; verbose = false, save = false, ref = nothing)
                 s = suite()
-                BenchmarkTools.warmup(s; verbose)
                 __tune!(s, ref; verbose = verbose)
                 results = BenchmarkTools.run(s; verbose = verbose)
                 if save
@@ -132,15 +130,6 @@ macro jog(pkg)
             """
             function run(args...; verbose = false, kwargs...)
                 BenchmarkTools.run(suite(), args...; verbose = verbose, kwargs...)
-            end
-
-            """
-                warmup(; verbose::Bool = false)
-
-            Warmup the benchmarking suite for $($pkg)
-            """
-            function warmup(; verbose = false)
-                BenchmarkTools.warmup(suite(); verbose)
             end
 
             """
