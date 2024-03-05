@@ -25,6 +25,7 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v1
+      - run: julia -e 'using Pkg; Pkg.add(url="https://github.com/awadell1/ReTestItems.jl.git", rev="tempdir")'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-uploadcoveralls@v1
