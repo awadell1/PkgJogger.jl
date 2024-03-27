@@ -71,7 +71,7 @@ function sandbox(f, pkg)
         # Build up benchmarked environment
         Pkg.activate(temp_env; io=devnull)
         Pkg.develop(pkg; preserve=PRESERVE_NONE, io=devnull)
-        Pkg.add(self; preserve=PRESERVE_TIERED, io=devnull)
+        Pkg.develop(self; preserve=PRESERVE_TIERED, io=devnull)
         Pkg.instantiate(; io=devnull)
 
         # Strip LOAD_PATH to the temporary environment
