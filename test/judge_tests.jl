@@ -12,9 +12,9 @@ function gen_example()
     return results, filename, dict, uuid
 end
 
-function test_judge(f, new, old)
-    @inferred f(new, old)
-    judgement = f(new, old)
+function test_judge(f, new, old, args...)
+    @inferred f(new, old, args...)
+    judgement = f(new, old, args...)
     @test typeof(judgement) <: BenchmarkGroup
     return judgement
 end
@@ -25,6 +25,7 @@ old = gen_example()
 
 @testset "JogPkgName.judge($(typeof(n)), $(typeof(o)))" for (n, o) in Iterators.product(new, old)
     test_judge(jogger.judge, n, o)
+    test_judge(jogger.judge, n, o, :, "1ms")
 end
 
 @testset "PkgJogger.judge($(typeof(n)), $(typeof(o)))" for (n, o) in Iterators.product(new[1:3], old[1:3])

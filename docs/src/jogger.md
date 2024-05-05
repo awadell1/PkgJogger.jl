@@ -88,8 +88,11 @@ Often it's useful to run only a subset of the full benchmarking suite.
 For example, to run only the benchmarks within `benchmark/bench_filename.jl`:
 `JogExample.run("bench_filename")`.
 
-Most jogger functions support filtering ([`judge`](@ref JogExample.judge) is a notable exception).
-Greater support is planned.
+```julia
+using PkgJogger, Example
+@jog Example
+JogExample.run("bench_filename.jl")
+```
 
 !!! compat PkgJogger 0.6.0
     Support for filtering via [`JogExample.suite`](@ref) was added in v0.6.0

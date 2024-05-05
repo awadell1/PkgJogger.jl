@@ -117,9 +117,9 @@ function judge(
     old_estimate = metric(old)
     BenchmarkTools.judge(new_estimate, old_estimate; kwargs...)
 end
-function judge(new, old; kwargs...)
-    new_results = _get_benchmarks(new)
-    old_results = _get_benchmarks(old)
+function judge(new, old, select...; kwargs...)
+    new_results = getsuite(_get_benchmarks(new), select...)
+    old_results = getsuite(_get_benchmarks(old), select...)
     judge(new_results, old_results; kwargs...)
 end
 
