@@ -10,7 +10,10 @@ Pkg.instantiate()
 
 # Load Code
 using Documenter
+using Documenter.Remotes: GitHub
+using DocumenterInterLinks
 using PkgJogger
+using CUDA
 using Example
 @jog Example
 
@@ -31,10 +34,20 @@ EditURL = "$readme_md"
     write(io, read(readme_md, String))
 end
 
+# Interproject Links
+links = InterLinks(
+    "Julia" => "https://docs.julialang.org/en/v1/",
+    "CUDA" => "https://cuda.juliagpu.org/stable/",
+)
+
 makedocs(;
-    modules=[PkgJogger, JogExample],
+    modules=[
+        PkgJogger,
+        JogExample,
+        Base.get_extension(PkgJogger, :PkgJoggerCUDAExt),
+    ],
     authors="Alexius Wadell <awadell@gmail.com> and contributors",
-    repo="https://github.com/awadell1/PkgJogger.jl/blob/{commit}{path}#{line}",
+    repo=GitHub("awadell1", "PkgJogger.jl"),
     sitename="PkgJogger.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
@@ -50,6 +63,7 @@ makedocs(;
         "Profiling" => "profiling.md",
         "Reference" => "reference.md",
     ],
+    plugins=[links],
     checkdocs=:all,
 )
 

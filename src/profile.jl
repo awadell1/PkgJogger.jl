@@ -34,7 +34,8 @@ end
 """
     profiler=:cpu
 
-Profiles the benchmark using [`Profile.@profile`](@ref)
+
+Profiles the benchmark using Julia's built-in profiler: [`Profile.@profile`](@extref)
 """
 function profile(::Val{Symbol(:cpu)}, id, b::BenchmarkTools.Benchmark; verbose)
     Profile.clear()
@@ -47,10 +48,10 @@ if isdefined(Profile, :Allocs)
     @doc """
          profiler=:allocs
 
-    Profiles memory allocations using the built-in [`Profile.Allocs.@profile`](@ref)
+    Profiles memory allocations using the built-in [`Profile.Allocs.@profile`](@extref)
 
     Accepts `sample_rate` as a kwarg to control the rate of recordings. A rate of 1.0 will
-    record everything; 0.0 will record nothing. See [`Profile.Allocs.@profile`](@ref) for more.
+    record everything; 0.0 will record nothing. See [`Profile.Allocs.@profile`](@extref) for more.
 
     !!! compat "Julia 1.8"
         The allocation profiler was added in Julia 1.8

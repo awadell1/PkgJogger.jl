@@ -7,11 +7,11 @@ using NVTX
 """
     profiler=:cuda
 
-Profiles the benchmark using [`CUDA.@profile`](@ref).
+Profiles the benchmark using [`CUDA.@profile`](@extref).
 
 !!! warning
     This only activates the CUDA profiler, you need to launch the profiler externally.
-    See [CUDA Profiling](https://cuda.juliagpu.org/stable/development/profiling/) for documentation.
+    See [CUDA Profiling](@extref CUDA development/profiling) for documentation.
 
 """
 function PkgJogger.profile(::Val{Symbol(:cuda)}, id, b::PkgJogger.BenchmarkTools.Benchmark; verbose)
