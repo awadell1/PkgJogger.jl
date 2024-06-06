@@ -16,7 +16,7 @@ Profiles the benchmark using [`CUDA.@profile`](@ref).
 """
 function PkgJogger.profile(::Val{Symbol(:cuda)}, id, b::PkgJogger.BenchmarkTools.Benchmark; verbose)
     id_str = join(id, "/")
-    CUDA.@profile begin
+    CUDA.@profile external=true begin
         NVTX.@range id_str begin
             PkgJogger.BenchmarkTools.run(b)
         end

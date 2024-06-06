@@ -1,5 +1,5 @@
 function profile(suite, profiler::Symbol; verbose=false, ref=nothing, kwargs...)
-    leaf = leaves(suite)
+    leaf = BenchmarkTools.leaves(suite)
     @assert length(leaf) == 1 "Profiling Support is limited to one benchmark at a time"
     id, benchmark = first(leaf)
     warmup(suite; verbose)
