@@ -6,6 +6,7 @@ PkgJogger.locate_benchmarks
 PkgJogger.judge
 PkgJogger.test_benchmarks
 PkgJogger.tune!
+PkgJogger.getsuite
 ```
 
 ## Internal

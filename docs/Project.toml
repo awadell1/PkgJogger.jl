@@ -1,8 +1,14 @@
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterInterLinks = "d12716ef-a0f6-4df4-a9f1-a5a34e75c656"
 Example = "4b09cd0b-9172-4840-a79f-b48550c7f881"
 PkgJogger = "10150987-6cc1-4b76-abee-b1c1cbd91c01"
+Profile = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 
 [compat]
-Documenter = "1.2"
+Documenter = "1.4"
+
+[preferences.CUDA_Runtime_jll]
+local = true

@@ -1,7 +1,7 @@
 name = "PkgJogger"
 uuid = "10150987-6cc1-4b76-abee-b1c1cbd91c01"
 authors = ["Alexius Wadell <awadell@gmail.com> and contributors"]
-version = "0.5.1"
+version = "0.6.0"
 
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
@@ -11,21 +11,38 @@ Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LibGit2 = "76f85450-5226-5b5a-8eaa-529ad045b433"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Profile = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
+[weakdeps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+NVTX = "5da4648a-3479-48b8-97b9-01cb529c0a1f"
+
+[extensions]
+PkgJoggerCUDAExt = ["CUDA", "NVTX"]
+
 [compat]
 BSON = "0.3"
 BenchmarkTools = "1.5"
+CUDA = "5"
 CodecZlib = "0.7"
+Dates = "1.9"
 JSON = "0.21"
-Pkg = "1.9"
+LibGit2 = "1.9"
 Revise = "3"
+NVTX = "0.3"
+Pkg = "1.9"
+Profile = "1.9"
 Statistics = "1.9"
+Test = "1.9"
+UUIDs = "1.9"
 julia = "1.9"
 
 [extras]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+NVTX = "5da4648a-3479-48b8-97b9-01cb529c0a1f"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 ReTestItems = "817f1d60-ba6b-4fd5-9520-3cf149f6a823"
@@ -35,4 +52,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [targets]
-test = ["Test", "ReTestItems", "Revise", "UUIDs", "TOML", "Random", "Pkg"]
+test = ["Test", "ReTestItems", "Revise", "UUIDs", "TOML", "Random", "Pkg", "NVTX", "CUDA"]

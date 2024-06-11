@@ -19,8 +19,8 @@ jobs:
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v3
-      - uses: julia-actions/setup-julia@v1
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
@@ -32,11 +32,25 @@ jobs:
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  legacy:
+    name: Test Min Compat Bounds
+    runs-on: ubuntu-latest
+    steps:
+    - uses: julia-actions/julia-downgrade-compat@v1
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+    - uses: actions/checkout@v4
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: 1.9
+    - uses: julia-actions/cache@v1
+    - uses: julia-actions/julia-buildpkg@v1
+    - uses: julia-actions/julia-runtest@v1
+
   action:
     name: Test Github action
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: "./"

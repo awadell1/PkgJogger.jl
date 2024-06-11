@@ -71,6 +71,29 @@ function locate_benchmarks(path, name=String[])
 end
 locate_benchmarks(pkg::Module) = benchmark_dir(pkg) |> locate_benchmarks
 
+_SELECT_DOCS = """
+"""
+"""
+    getsuite(suite, [select...])
+
+$(_SELECT_DOCS)
+"""
+getsuite(suite::BenchmarkGroup) = suite
+getsuite(suite::BenchmarkGroup, ::Colon) = suite
+getsuite(suite::BenchmarkGroup, r::Regex) = filter(!isnothing ∘ Base.Fix1(match, r) ∘ first, suite)
+getsuite(suite::BenchmarkGroup, f::BenchmarkTools.TagFilter) = suite[f]
+getsuite(::BenchmarkTools.Benchmark, ::Any) = nothing
+getsuite(suite::BenchmarkGroup, idx) = !haskey(suite, idx) ? BenchmarkGroup() : BenchmarkGroup(idx => suite[idx])
+function getsuite(suite::BenchmarkGroup, idx, rest...)
+    src = getsuite(suite, idx)
+    dst = similar(src)
+    for (k, v) in src
+        v = getsuite(v, rest...)
+        !isnothing(v) && !isempty(v) && setindex!(dst, v, k)
+    end
+    return dst
+end
+
 """
     judge(new, old; metric=Statistics.median, kwargs...)
 
@@ -87,16 +110,16 @@ Effectively a convenience wrapper around `load_benchmarks` and `BenchmarkTools.j
 function judge(
     new::BenchmarkTools.BenchmarkGroup,
     old::BenchmarkTools.BenchmarkGroup;
-    metric = Statistics.median,
+    metric=Statistics.median,
     kwargs...
 )
     new_estimate = metric(new)
     old_estimate = metric(old)
     BenchmarkTools.judge(new_estimate, old_estimate; kwargs...)
 end
-function judge(new, old; kwargs...)
-    new_results = _get_benchmarks(new)
-    old_results = _get_benchmarks(old)
+function judge(new, old, select...; kwargs...)
+    new_results = getsuite(_get_benchmarks(new), select...)
+    old_results = getsuite(_get_benchmarks(old), select...)
     judge(new_results, old_results; kwargs...)
 end
 
