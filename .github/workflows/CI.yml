@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - lts
+          - '1.9'
           - release
           - rc
         os:
@@ -25,7 +25,7 @@ jobs:
       - uses: julia-actions/install-juliaup@v2
         with:
           channel: ${{ matrix.version }}
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-uploadcoveralls@v1
@@ -40,7 +40,8 @@ jobs:
     - uses: actions/checkout@v4
     - uses: julia-actions/install-juliaup@v2
       with:
-        channel: lts
+        channel: "1.9"
+    - uses: julia-actions/cache@v2
     - uses: julia-actions/julia-downgrade-compat@v1
     - uses: julia-actions/julia-buildpkg@v1
     - uses: julia-actions/julia-runtest@v1
@@ -53,7 +54,7 @@ jobs:
       - uses: julia-actions/install-juliaup@v2
         with:
           channel: release
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
       - uses: "./"
         with:
           prefix: "cd test/Example.jl &&"
@@ -63,11 +64,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: julia-actions/cache@v1
       - uses: julia-actions/install-juliaup@v2
         with:
-          channel: lts
-      - uses: julia-actions/cache@v1
+          channel: "1.10"
+      - uses: julia-actions/cache@v2
       - run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
