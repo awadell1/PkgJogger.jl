@@ -11,7 +11,9 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '*'     # Latest Release
+          - lts
+          - release
+          - rc
         os:
           - ubuntu-latest
           - windows-latest
@@ -20,10 +22,9 @@ jobs:
           - x64
     steps:
       - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/install-juliaup@v2
         with:
-          version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
+          channel: ${{ matrix.version }}
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
@@ -36,13 +37,11 @@ jobs:
     name: Test Min Compat Bounds
     runs-on: ubuntu-latest
     steps:
-    - uses: julia-actions/julia-downgrade-compat@v1
-      if: ${{ matrix.os == 'ubuntu-latest' }}
     - uses: actions/checkout@v4
-    - uses: julia-actions/setup-julia@v2
+    - uses: julia-actions/install-juliaup@v2
       with:
-        version: 1.9
-    - uses: julia-actions/cache@v1
+        channel: lts
+    - uses: julia-actions/julia-downgrade-compat@v1
     - uses: julia-actions/julia-buildpkg@v1
     - uses: julia-actions/julia-runtest@v1
 
@@ -51,7 +50,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/install-juliaup@v2
+        with:
+          channel: release
       - uses: julia-actions/cache@v1
       - uses: "./"
         with:
@@ -63,7 +64,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/cache@v1
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/install-juliaup@v2
+        with:
+          channel: lts
+      - uses: julia-actions/cache@v1
       - run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
