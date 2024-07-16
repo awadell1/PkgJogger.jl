@@ -47,6 +47,7 @@ macro jog(pkg)
     if !isdir(bench_dir)
         error("No benchmark directory found for $pkg. Expected: $bench_dir")
     end
+ 
     # Generate Using Statements
     using_statements = Expr[]
     for pkg in JOGGER_PKGS
@@ -64,7 +65,6 @@ macro jog(pkg)
     end
 
     # Strip redundant quote blocks and flatten modules into a single single Vector{Expr}`
-    # This is needed to avoid wrapping module blocks in `begin .. end` blocks
     suite_exp = mapreduce(Base.Fix2(getfield, :args), vcat, suite_modules)
 
     # String representation of the Jogger module for use in doc strings
@@ -75,6 +75,9 @@ macro jog(pkg)
         @eval module $modname
         using $pkg
         $(using_statements...)
+
+        # The public interface of a Jogger
+        Compat.@compat public suite, benchmark, run, profile, save_benchmarks, load_benchmarks, judge, BENCHMARK_DIR
 
         # Set Revise Mode and put submodules here
         __revise_mode__ = :eval
@@ -172,7 +175,7 @@ macro jog(pkg)
         """
             save_benchmarks(results::BenchmarkGroup)::String
 
-        Saves benchmarking results for $($pkg) to `BENCHMARK_DIR/trial/uuid4().bson.gz`,
+        Saves benchmarking results for $($pkg) to `BENCHMARK_DIR/trial/UUIDs.uuid4().bson.gz`,
         and returns the path to the saved results
 
         > Meta Data such as cpu load, time stamp, etc. are collected on save, not during
@@ -314,7 +317,7 @@ function build_module(s::BenchModule)
 
     # If Revise.jl has been loaded, use it to track changes to the
     # benchmarking module. Otherwise, don't track changes.
-    revise_id = PkgId(UUID("295af30f-e4ad-537b-8983-00126c2a3abe"), "Revise")
+    revise_id = Base.PkgId(UUID("295af30f-e4ad-537b-8983-00126c2a3abe"), "Revise")
     if haskey(Base.loaded_modules, revise_id)
         revise_exp = :(Base.loaded_modules[$revise_id].track($modname, $(s.filename)))
     else

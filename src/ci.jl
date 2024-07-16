@@ -50,11 +50,9 @@ function sandbox(f, pkg)
     current_load_path = Base.LOAD_PATH
 
     # Construct PackageSpec for self
-    self = PackageSpec(
-        name = JOGGER_PKGS[1].name,
-        uuid = JOGGER_PKGS[1].uuid,
-        path = Base.pkgdir(PkgJogger),
-    )
+    self_pkgid = Base.identify_package(@__MODULE__, string(@__MODULE__))
+    self = PackageSpec(; name = self_pkgid.name, uuid = self_pkgid.uuid)
+    path = pkgdir(@__MODULE__)
 
     # Locate benchmark project
     # TODO: Use Sub-project https://github.com/JuliaLang/Pkg.jl/issues/1233
@@ -118,7 +116,7 @@ function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
         "datetime" => Dates.now(),
         "benchmarks" => results,
         "git" => git_info(filename),
-        "pkgjogger" => PkgJogger.PKG_JOGGER_VER,
+        "pkgjogger" => pkgversion(@__MODULE__),
     )
 
     # Write benchmark to disk

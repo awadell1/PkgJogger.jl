@@ -11,7 +11,9 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '*'     # Latest Release
+          - '1.9'
+          - release
+          - rc
         os:
           - ubuntu-latest
           - windows-latest
@@ -20,11 +22,10 @@ jobs:
           - x64
     steps:
       - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/install-juliaup@v2
         with:
-          version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v1
+          channel: ${{ matrix.version }}
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-uploadcoveralls@v1
@@ -36,13 +37,12 @@ jobs:
     name: Test Min Compat Bounds
     runs-on: ubuntu-latest
     steps:
-    - uses: julia-actions/julia-downgrade-compat@v1
-      if: ${{ matrix.os == 'ubuntu-latest' }}
     - uses: actions/checkout@v4
-    - uses: julia-actions/setup-julia@v2
+    - uses: julia-actions/install-juliaup@v2
       with:
-        version: 1.9
-    - uses: julia-actions/cache@v1
+        channel: "1.9"
+    - uses: julia-actions/cache@v2
+    - uses: julia-actions/julia-downgrade-compat@v1
     - uses: julia-actions/julia-buildpkg@v1
     - uses: julia-actions/julia-runtest@v1
 
@@ -51,8 +51,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v1
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/install-juliaup@v2
+        with:
+          channel: release
+      - uses: julia-actions/cache@v2
       - uses: "./"
         with:
           prefix: "cd test/Example.jl &&"
@@ -62,8 +64,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: julia-actions/cache@v1
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/install-juliaup@v2
+        with:
+          channel: "1.10"
+      - uses: julia-actions/cache@v2
       - run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
