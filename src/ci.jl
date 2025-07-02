@@ -51,7 +51,7 @@ function sandbox(f, pkg)
 
     # Construct PackageSpec for self
     self_pkgid = Base.identify_package(@__MODULE__, string(@__MODULE__))
-    self = PackageSpec(; name = self_pkgid.name, uuid = self_pkgid.uuid)
+    self = Pkg.PackageSpec(; name = self_pkgid.name, uuid = self_pkgid.uuid)
     path = pkgdir(@__MODULE__)
 
     # Locate benchmark project
@@ -68,8 +68,8 @@ function sandbox(f, pkg)
 
         # Build up benchmarked environment
         Pkg.activate(temp_env; io=devnull)
-        Pkg.develop(pkg; preserve=PRESERVE_NONE, io=devnull)
-        Pkg.develop(self; preserve=PRESERVE_TIERED, io=devnull)
+        Pkg.develop(pkg; preserve=Pkg.PRESERVE_NONE, io=devnull)
+        Pkg.develop(self; preserve=Pkg.PRESERVE_TIERED, io=devnull)
         Pkg.instantiate(; io=devnull)
 
         # Strip LOAD_PATH to the temporary environment
@@ -77,7 +77,7 @@ function sandbox(f, pkg)
         push!(Base.LOAD_PATH, "@")
 
         # Report current status
-        Pkg.status(;mode=PKGMODE_MANIFEST)
+        Pkg.status(;mode=Pkg.PKGMODE_MANIFEST)
 
         # Run function
         f()
@@ -98,9 +98,9 @@ analysis.
 ## File Contents
 - Julia Version, Commit and Commit date
 - System Information
-- Timestamp
+- Time stamp
 - Benchmarking Results
-- Git Commit, 'Is Dirty' status and author datetime
+- Git Commit, 'Is Dirty' status and author date time
 - PkgJogger Version used to save the file
 
 ## File Format:
@@ -121,7 +121,7 @@ function save_benchmarks(filename, results::BenchmarkTools.BenchmarkGroup)
 
     # Write benchmark to disk
     open(GzipCompressorStream, filename, "w") do io
-        bson(io, out)
+        BSON.bson(io, out)
     end
 end
 
@@ -172,13 +172,13 @@ function git_info(path)
     # Attempt to get git info -> But Fall back to nothing on failure
     try
         # Get Head Commit
-        head = LibGit2.peel(LibGit2.GitCommit, LibGit2.head(GitRepo(ref_dir)))
+        head = LibGit2.peel(LibGit2.GitCommit, LibGit2.head(LibGit2.GitRepo(ref_dir)))
         author_sig = LibGit2.author(head)
 
         # Capture Git Info
         return Dict(
             "commit" => LibGit2.GitHash(head) |> string,
-            "is_dirty" =>  LibGit2.with(LibGit2.isdirty, GitRepo(ref_dir)),
+            "is_dirty" =>  LibGit2.with(LibGit2.isdirty, LibGit2.GitRepo(ref_dir)),
             "datetime" => Dates.unix2datetime(author_sig.time),
         )
     catch e
