@@ -1,20 +1,21 @@
 module PkgJogger
 
-using BenchmarkTools
-using CodecZlib
-using JSON
-using BSON
-using Pkg
-using UUIDs
-using Dates
-using LibGit2
-using Statistics
-using Test
-using Profile
+using BenchmarkTools: BenchmarkTools, BenchmarkGroup
+using CodecZlib: GzipCompressorStream, GzipDecompressorStream
+using JSON: JSON
+using BSON: BSON
+using Pkg: Pkg
+using UUIDs: UUIDs, UUID
+using Dates: Dates
+using LibGit2: LibGit2
+using Statistics: Statistics
+using Test: @testset, @test
+using Profile: Profile
 using Compat: @compat
+using TOML: TOML
 
 export @jog, @test_benchmarks
-@compat public judge, ci, load_benchmarks, save_benchmarks, locate_benchmarks, tune!, getsuite, profile
+@compat public ci, load_benchmarks, save_benchmarks
 
 """
 Packages that are required by modules created with [`@jog`](@ref)
@@ -29,7 +30,7 @@ const JOGGER_PKGS = [
 ]
 
 const PKG_JOGGER_VER = VersionNumber(
-    Base.parsed_toml(joinpath(@__DIR__, "..", "Project.toml"))["version"]
+    TOML.parsefile(joinpath(pkgdir(@__MODULE__), "Project.toml"))["version"]
 )
 
 include("utils.jl")
