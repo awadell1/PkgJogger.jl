@@ -47,7 +47,7 @@ macro jog(pkg)
     if !isdir(bench_dir)
         error("No benchmark directory found for $pkg. Expected: $bench_dir")
     end
- 
+
     # Generate Using Statements
     using_statements = Expr[]
     for pkg in JOGGER_PKGS
@@ -65,7 +65,7 @@ macro jog(pkg)
     end
 
     # Strip redundant quote blocks and flatten modules into a single single Vector{Expr}`
-    suite_exp = mapreduce(Base.Fix2(getfield, :args), vcat, suite_modules)
+    suite_exp = mapreduce(Base.Fix2(getfield, :args), vcat, suite_modules; init=Expr[])
 
     # String representation of the Jogger module for use in doc strings
     mod_str = string(modname)
@@ -294,7 +294,8 @@ macro jog(pkg)
         !!! info
             This list was generated on jogger creation (`@jog $($pkg)`),
             and my not reflect all loaded extensions. See [`PkgJogger.profile`](@ref)
-            or regenerate the jogger for additional information
+            or regenerate the jogger for additional information by running
+            `@jog $($pkg)` again.
 
         """
         function profile(select...; profiler::Symbol=:cpu, kwargs...)
