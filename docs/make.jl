@@ -34,6 +34,21 @@ EditURL = "$readme_md"
     write(io, read(readme_md, String))
 end
 
+# Generate changelog.md from CHANGELOG.md
+changelog_md = joinpath(@__DIR__, "src", "changelog.md")
+repo_changelog = joinpath(@__DIR__, "..", "CHANGELOG.md")
+open(changelog_md, "w") do io
+    write(
+        io,
+        """
+```@meta
+EditURL = "$repo_changelog"
+```
+"""
+    )
+    write(io, read(repo_changelog, String))
+end
+
 # Interproject Links
 links = InterLinks(
     "Julia" => "https://docs.julialang.org/en/v1/",
@@ -61,6 +76,7 @@ makedocs(;
         "Saving Results" => "io.md",
         "Continuous Benchmarking" => "ci.md",
         "Profiling" => "profiling.md",
+        "Changelog" => "changelog.md",
         "Reference" => "reference.md",
     ],
     plugins=[links],
@@ -74,3 +90,5 @@ deploydocs(;
 
 # Remove index.md
 rm(joinpath(@__DIR__, "src", "index.md"))
+# Remove changelog.md
+rm(joinpath(@__DIR__, "src", "changelog.md"))
