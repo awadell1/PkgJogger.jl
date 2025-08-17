@@ -6,6 +6,8 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 ## [Unreleased](https://github.com/awadell1/PkgJogger.jl/compare/v0.6.0...HEAD)
 
+- Compat: Revise ≥3.3; BSON ≥0.3.4
+
 ## [v0.6.0](https://github.com/awadell1/PkgJogger.jl/compare/v0.5.1...v0.6.0) - 2025-08-16
 
 - Added: define the public interface.
@@ -91,4 +93,3 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 ## [v0.1.0](https://github.com/awadell1/PkgJogger.jl/releases/tag/v0.1.0) - 2021-08-14
 
 - Initial release.
-

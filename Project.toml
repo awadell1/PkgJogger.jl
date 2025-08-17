@@ -26,7 +26,7 @@ NVTX = "5da4648a-3479-48b8-97b9-01cb529c0a1f"
 PkgJoggerCUDAExt = ["CUDA", "NVTX"]
 
 [compat]
-BSON = "0.3"
+BSON = "0.3.4"
 BenchmarkTools = "1.5"
 CUDA = "5"
 CodecZlib = "0.7"
